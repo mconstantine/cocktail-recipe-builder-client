@@ -1,5 +1,5 @@
 {
-  "name": "cocktail-recipe-builder",
+  "name": "cocktail-recipe-builder-client",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
