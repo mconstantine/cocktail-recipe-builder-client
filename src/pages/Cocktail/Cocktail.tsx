@@ -14,6 +14,7 @@ import { foldQuery, useGet } from '../../api/useApi'
 import { ErrorAlert } from '../../components/ErrorAlert'
 import { Link } from '../../components/Link'
 import { Loading } from '../../components/Loading'
+import { ProfileGraph } from '../../components/ProfileGraph/ProfileGraph'
 import { getCocktailProfile } from '../../utils/getCocktailProfile'
 import { getCocktail } from './api'
 
@@ -32,8 +33,7 @@ export function Cocktail() {
         />
       ),
       cocktail => {
-        const { volumeMl, volumeOz, sugarContentPct, acidContentPct, abv } =
-          getCocktailProfile(cocktail)
+        const profile = getCocktailProfile(cocktail)
 
         return (
           <Stack>
@@ -67,31 +67,38 @@ export function Cocktail() {
               <List>
                 <ListItem>
                   <ListItemText
-                    primary={`${volumeMl.toFixed(2)} ml (${volumeOz.toFixed(
+                    primary={`${profile.avgDilution.volumeMl.toFixed(
                       2,
-                    )} oz)`}
+                    )} ml (${profile.avgDilution.volumeOz.toFixed(2)} oz)`}
                     secondary="Average volume"
                   />
                 </ListItem>
                 <ListItem>
                   <ListItemText
-                    primary={`${abv.toFixed(2)}%`}
+                    primary={`${profile.avgDilution.abv.toFixed(2)}%`}
                     secondary="Average ABV"
                   />
                 </ListItem>
                 <ListItem>
                   <ListItemText
-                    primary={`${sugarContentPct.toFixed(2)}%`}
+                    primary={`${profile.avgDilution.sugarContentPct.toFixed(
+                      2,
+                    )}%`}
                     secondary="Average sugar content"
                   />
                 </ListItem>
                 <ListItem>
                   <ListItemText
-                    primary={`${acidContentPct.toFixed(2)}%`}
+                    primary={`${profile.avgDilution.acidContentPct.toFixed(
+                      2,
+                    )}%`}
                     secondary="Average acid content"
                   />
                 </ListItem>
               </List>
+            </Box>
+            <Box mt={2}>
+              <ProfileGraph profile={profile} technique={cocktail.technique} />
             </Box>
           </Stack>
         )

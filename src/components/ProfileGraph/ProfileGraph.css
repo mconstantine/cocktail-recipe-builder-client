@@ -1,0 +1,46 @@
+.ProfileGraph {
+  width: 90vw;
+  height: 90vw;
+  max-width: 420px;
+  max-height: 520px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.ProfileGraph .column {
+  width: 100%;
+  height: 90vw;
+  max-height: 520px;
+}
+
+.ProfileGraph .column .values {
+  width: 100%;
+  height: 90vw;
+  max-height: 520px;
+  position: relative;
+}
+
+.ProfileGraph .column .values * {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 60%;
+  background-color: var(--color);
+}
+
+.ProfileGraph .column .values .actual {
+  width: 10%;
+  margin-left: 25%;
+}
+
+.ProfileGraph .column .MuiTypography-root {
+  font-size: calc(12px + (100vw - 320px) / 180 * 4);
+}
+
+@media all and (min-width: 500px) {
+  .ProfileGraph .column .MuiTypography-root {
+    font-size: 16px;
+  }
+}

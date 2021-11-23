@@ -1,12 +1,5 @@
+import { CocktailProfile } from '../globalDomain'
 import { CocktailOutput } from '../pages/Cocktail/domain'
-
-interface CocktailProfile {
-  volumeMl: number
-  volumeOz: number
-  sugarContentPct: number
-  acidContentPct: number
-  abv: number
-}
 
 function getContentPct(
   cocktail: CocktailOutput,
@@ -54,18 +47,42 @@ export function getCocktailProfile(cocktail: CocktailOutput): CocktailProfile {
     ({ unit }) => unit.name === 'Dilution',
   ) || { min: 0, max: 0 }
 
-  const dilutionAvg = (dilutionRange.max + dilutionRange.min) / 2
-  const volumeMl = initialVolumeMl + (initialVolumeMl / 100) * dilutionAvg
-  const volumeOz = volumeMl / 30
-  const sugarContentPct = getContentPct(cocktail, volumeMl, 'Sugar')
-  const acidContentPct = getContentPct(cocktail, volumeMl, 'Acid')
-  const abv = getContentPct(cocktail, volumeMl, 'ABV')
+  const minDilution = dilutionRange.min
+  const maxDilution = dilutionRange.max
+  const avgDilution = (minDilution + maxDilution) / 2
+
+  const minVolumeMl = initialVolumeMl + (initialVolumeMl / 100) * minDilution
+  const maxVolumeMl = initialVolumeMl + (initialVolumeMl / 100) * maxDilution
+  const avgVolumeMl = initialVolumeMl + (initialVolumeMl / 100) * avgDilution
 
   return {
-    volumeMl,
-    volumeOz,
-    sugarContentPct,
-    acidContentPct,
-    abv,
+    initial: {
+      volumeMl: initialVolumeMl,
+      volumeOz: initialVolumeMl / 30,
+      abv: getContentPct(cocktail, initialVolumeMl, 'ABV'),
+      sugarContentPct: getContentPct(cocktail, initialVolumeMl, 'Sugar'),
+      acidContentPct: getContentPct(cocktail, initialVolumeMl, 'Acid'),
+    },
+    minDilution: {
+      volumeMl: minVolumeMl,
+      volumeOz: minVolumeMl / 30,
+      abv: getContentPct(cocktail, minVolumeMl, 'ABV'),
+      sugarContentPct: getContentPct(cocktail, minVolumeMl, 'Sugar'),
+      acidContentPct: getContentPct(cocktail, minVolumeMl, 'Acid'),
+    },
+    avgDilution: {
+      volumeMl: avgVolumeMl,
+      volumeOz: avgVolumeMl / 30,
+      abv: getContentPct(cocktail, avgVolumeMl, 'ABV'),
+      sugarContentPct: getContentPct(cocktail, avgVolumeMl, 'Sugar'),
+      acidContentPct: getContentPct(cocktail, avgVolumeMl, 'Acid'),
+    },
+    maxDilution: {
+      volumeMl: maxVolumeMl,
+      volumeOz: maxVolumeMl / 30,
+      abv: getContentPct(cocktail, maxVolumeMl, 'ABV'),
+      sugarContentPct: getContentPct(cocktail, maxVolumeMl, 'Sugar'),
+      acidContentPct: getContentPct(cocktail, maxVolumeMl, 'Acid'),
+    },
   }
 }
