@@ -5,13 +5,14 @@ import {
   Pagination,
   Stack,
   TextField,
+  Typography,
 } from '@mui/material'
 import { option } from 'fp-ts'
 import { pipe } from 'fp-ts/function'
 import { ChangeEvent, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { foldQuery, useGet } from '../../api/useApi'
 import { ErrorAlert } from '../../components/ErrorAlert'
+import { Link } from '../../components/Link'
 import { Loading } from '../../components/Loading'
 import { useDebounce } from '../../hooks/useDebounce'
 import { getIngredients } from './api'
@@ -24,7 +25,7 @@ export function Ingredients() {
     perPage: 20,
   })
 
-  const ingredients = useGet(getIngredients, input)
+  const [ingredients] = useGet(getIngredients, input)
 
   const onQueryChange = useDebounce((query: string) => {
     setInput(input => ({ ...input, query: option.some(query), page: 1 }))
@@ -32,6 +33,7 @@ export function Ingredients() {
 
   return (
     <Stack spacing={4}>
+      <Typography variant="h1">Ingredients</Typography>
       <TextField
         label="Search ingredients"
         onChange={e => onQueryChange(e.currentTarget.value)}
@@ -53,11 +55,21 @@ export function Ingredients() {
             }
 
             const pagination = (
-              <Pagination
-                count={ingredients.meta.last_page}
-                onChange={onPageChange}
-                page={input.page}
-              />
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                flexWrap="wrap-reverse"
+                spacing={2}
+              >
+                <Pagination
+                  count={ingredients.meta.last_page}
+                  onChange={onPageChange}
+                  page={input.page}
+                />
+                <Typography variant="caption" sx={{ py: 2 }}>
+                  Total: {ingredients.meta.total}
+                </Typography>
+              </Stack>
             )
 
             return (
@@ -68,7 +80,7 @@ export function Ingredients() {
                     {ingredients.data.map(ingredient => (
                       <ListItemButton key={ingredient.id}>
                         <Link
-                          to={`/ingredients/${ingredient.id}`}
+                          href={`/ingredients/${ingredient.id}`}
                           key={ingredient.id}
                           style={{ flexGrow: 1 }}
                         >

@@ -74,11 +74,15 @@ export function makeDeleteRequest<I, II, O, OO>(
   return { ...request, method: 'DELETE' }
 }
 
-function request<I, II, O, OO>(
+function makeRequest<I, II, O, OO>(
   request: Request<I, II, O, OO>,
-  input: I,
+  input?: I,
 ): TaskEither<Error, O> {
   const createQuery: IO<string> = () => {
+    if (input === undefined) {
+      return ''
+    }
+
     return pipe(
       input,
       request.inputCodec.encode,
@@ -95,8 +99,13 @@ function request<I, II, O, OO>(
     )
   }
 
-  const createBody: IO<string> = () =>
-    pipe(input, request.inputCodec.encode, JSON.stringify)
+  const createBody: IO<string> = () => {
+    if (input === undefined) {
+      return ''
+    }
+
+    return pipe(input, request.inputCodec.encode, JSON.stringify)
+  }
 
   const query = pipe(
     request.method,
@@ -193,49 +202,57 @@ export function foldQuery<E, O, R>(
   }
 }
 
-function useRequest<I, II, O, OO>(
-  r: Request<I, II, O, OO>,
-  input: I,
-): Query<Error, O> {
+function useQuery<I, II, O, OO>(
+  request: Request<I, II, O, OO>,
+  input?: I,
+): [query: Query<Error, O>, reload: IO<void>] {
   const [query, setQuery] = useState<Query<Error, O>>(loadingQuery())
 
-  useEffect(() => {
-    const sendRequest = pipe(
-      request(r, input),
+  const makeSendRequest = (request: Request<I, II, O, OO>, input?: I) =>
+    pipe(
+      makeRequest(request, input),
       taskEither.bimap(flow(errorQuery, setQuery), flow(readyQuery, setQuery)),
     )
 
+  const reloadQuery = (request: Request<I, II, O, OO>, input?: I) => {
+    const sendRequest = makeSendRequest(request, input)
+
     setQuery(loadingQuery())
     sendRequest()
-  }, [input, r])
+  }
 
-  return query
+  useEffect(() => {
+    reloadQuery(request, input)
+    // eslint-disable-next-line
+  }, [input])
+
+  return [query, () => reloadQuery(request, input)]
 }
 
 export function useGet<I, II, O, OO>(
   request: GetRequest<I, II, O, OO>,
-  input: I,
+  input?: I,
 ) {
-  return useRequest(request, input)
+  return useQuery(request, input)
 }
 
 export function usePost<I, II, O, OO>(
   request: PostRequest<I, II, O, OO>,
-  input: I,
+  input?: I,
 ) {
-  return useRequest(request, input)
+  return useQuery(request, input)
 }
 
 export function usePut<I, II, O, OO>(
   request: PutRequest<I, II, O, OO>,
-  input: I,
+  input?: I,
 ) {
-  return useRequest(request, input)
+  return useQuery(request, input)
 }
 
 export function useDelete<I, II, O, OO>(
   request: DeleteRequest<I, II, O, OO>,
-  input: I,
+  input?: I,
 ) {
-  return useRequest(request, input)
+  return useQuery(request, input)
 }

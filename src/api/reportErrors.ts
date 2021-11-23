@@ -5,7 +5,7 @@ import { PathReporter } from 'io-ts/PathReporter'
 
 export function reportErrors<T>(result: Either<Errors, T>): Either<Errors, T> {
   if (either.isLeft(result)) {
-    console.log(PathReporter.report(result))
+    console.error(PathReporter.report(result))
   }
 
   return result
