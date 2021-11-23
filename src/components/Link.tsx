@@ -8,7 +8,7 @@ interface Props {
 
 export function Link(props: PropsWithChildren<Props>) {
   return (
-    <RouterLink className="Link" to={props.href}>
+    <RouterLink className="Link" to={props.href} style={props.style}>
       {props.children}
     </RouterLink>
   )

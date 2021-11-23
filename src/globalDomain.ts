@@ -1,10 +1,5 @@
 import * as t from 'io-ts'
 
-export const UnitType = t.keyof({
-  PERCENTAGE: 'PERCENTAGE',
-  VOLUME: 'VOLUME',
-})
-
 const UnitCommon = t.type(
   {
     id: t.Int,
@@ -18,7 +13,7 @@ const PercentageUnit = t.intersection(
   [
     UnitCommon,
     t.type({
-      type: t.literal(UnitType.keys.PERCENTAGE),
+      type: t.literal('PERCENTAGE'),
       ml: t.null,
     }),
   ],
@@ -29,7 +24,7 @@ const VolumeUnit = t.intersection(
   [
     UnitCommon,
     t.type({
-      type: t.literal(UnitType.keys.VOLUME),
+      type: t.literal('VOLUME'),
       ml: t.number,
     }),
   ],

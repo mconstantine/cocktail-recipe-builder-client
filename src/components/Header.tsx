@@ -31,6 +31,9 @@ export function Header(props: Props) {
               CRB
             </Typography>
             <Button color="inherit">
+              <Link to="/cocktails">Cocktails</Link>
+            </Button>
+            <Button color="inherit">
               <Link to="/ingredients">Ingredients</Link>
             </Button>
           </Toolbar>

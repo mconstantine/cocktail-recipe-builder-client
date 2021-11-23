@@ -17,7 +17,7 @@ import { getIngredient } from './api'
 
 export function Ingredient() {
   const params = useParams()
-  const [ingredient, reload] = useGet(getIngredient(parseInt(params.id!)))
+  const [ingredient, reload] = pipe(params.id!, parseInt, getIngredient, useGet)
 
   return pipe(
     ingredient,
