@@ -43,46 +43,11 @@ export function getCocktailProfile(cocktail: CocktailOutput): CocktailProfile {
 
   const initialVolumeMl = initialIngredientsVolumeMl + initialAdditionalVolumeMl
 
-  const dilutionRange = cocktail.technique.ranges.find(
-    ({ unit }) => unit.name === 'Dilution',
-  ) || { min: 0, max: 0 }
-
-  const minDilution = dilutionRange.min
-  const maxDilution = dilutionRange.max
-  const avgDilution = (minDilution + maxDilution) / 2
-
-  const minVolumeMl = initialVolumeMl + (initialVolumeMl / 100) * minDilution
-  const maxVolumeMl = initialVolumeMl + (initialVolumeMl / 100) * maxDilution
-  const avgVolumeMl = initialVolumeMl + (initialVolumeMl / 100) * avgDilution
-
   return {
-    initial: {
-      volumeMl: initialVolumeMl,
-      volumeOz: initialVolumeMl / 30,
-      abv: getContentPct(cocktail, initialVolumeMl, 'ABV'),
-      sugarContentPct: getContentPct(cocktail, initialVolumeMl, 'Sugar'),
-      acidContentPct: getContentPct(cocktail, initialVolumeMl, 'Acid'),
-    },
-    minDilution: {
-      volumeMl: minVolumeMl,
-      volumeOz: minVolumeMl / 30,
-      abv: getContentPct(cocktail, minVolumeMl, 'ABV'),
-      sugarContentPct: getContentPct(cocktail, minVolumeMl, 'Sugar'),
-      acidContentPct: getContentPct(cocktail, minVolumeMl, 'Acid'),
-    },
-    avgDilution: {
-      volumeMl: avgVolumeMl,
-      volumeOz: avgVolumeMl / 30,
-      abv: getContentPct(cocktail, avgVolumeMl, 'ABV'),
-      sugarContentPct: getContentPct(cocktail, avgVolumeMl, 'Sugar'),
-      acidContentPct: getContentPct(cocktail, avgVolumeMl, 'Acid'),
-    },
-    maxDilution: {
-      volumeMl: maxVolumeMl,
-      volumeOz: maxVolumeMl / 30,
-      abv: getContentPct(cocktail, maxVolumeMl, 'ABV'),
-      sugarContentPct: getContentPct(cocktail, maxVolumeMl, 'Sugar'),
-      acidContentPct: getContentPct(cocktail, maxVolumeMl, 'Acid'),
-    },
+    volumeMl: initialVolumeMl,
+    volumeOz: initialVolumeMl / 30,
+    abv: getContentPct(cocktail, initialVolumeMl, 'ABV'),
+    sugarContentPct: getContentPct(cocktail, initialVolumeMl, 'Sugar'),
+    acidContentPct: getContentPct(cocktail, initialVolumeMl, 'Acid'),
   }
 }

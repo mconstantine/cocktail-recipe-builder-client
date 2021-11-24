@@ -54,17 +54,10 @@ export const Technique = t.type(
 )
 export type Technique = t.TypeOf<typeof Technique>
 
-interface CocktailProfileCase {
+export interface CocktailProfile {
   volumeMl: number
   volumeOz: number
   sugarContentPct: number
   acidContentPct: number
   abv: number
-}
-
-export interface CocktailProfile {
-  initial: CocktailProfileCase
-  minDilution: CocktailProfileCase
-  avgDilution: CocktailProfileCase
-  maxDilution: CocktailProfileCase
 }

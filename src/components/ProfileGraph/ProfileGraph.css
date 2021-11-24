@@ -1,4 +1,8 @@
 .ProfileGraph {
+  display: inline-block;
+}
+
+.ProfileGraph .balance-graph {
   width: 90vw;
   height: 90vw;
   max-width: 420px;
@@ -10,14 +14,12 @@
 
 .ProfileGraph .column {
   width: 100%;
-  height: 90vw;
-  max-height: 520px;
+  height: 100%;
 }
 
 .ProfileGraph .column .values {
   width: 100%;
-  height: 90vw;
-  max-height: 520px;
+  height: 90%;
   position: relative;
 }
 

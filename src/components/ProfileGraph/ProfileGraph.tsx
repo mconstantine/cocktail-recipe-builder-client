@@ -1,4 +1,4 @@
-import { Typography, useTheme } from '@mui/material'
+import { Paper, Stack, Typography, useTheme } from '@mui/material'
 import { CocktailProfile, Technique } from '../../globalDomain'
 import './ProfileGraph.css'
 
@@ -8,10 +8,6 @@ interface Props {
 }
 
 export function ProfileGraph(props: Props) {
-  const dilutionRange = props.technique.ranges.find(
-    ({ unit: { name } }) => name === 'Dilution',
-  )
-
   const volumeRange = props.technique.ranges.find(
     ({ unit: { name } }) => name === 'Ounce',
   )
@@ -28,38 +24,40 @@ export function ProfileGraph(props: Props) {
     ({ unit: { name } }) => name === 'Acid',
   )
 
-  return dilutionRange ? (
-    <div className="ProfileGraph">
-      {volumeRange ? (
-        <Column
-          title="Volume"
-          range={volumeRange}
-          value={props.profile.initial.volumeOz}
-        />
-      ) : null}
-      {abvRange ? (
-        <Column
-          title="ABV"
-          range={abvRange}
-          value={props.profile.initial.abv}
-        />
-      ) : null}
-      {sugarRange ? (
-        <Column
-          title="Sweetness"
-          range={sugarRange}
-          value={props.profile.initial.sugarContentPct}
-        />
-      ) : null}
-      {acidRange ? (
-        <Column
-          title="Acidity"
-          range={acidRange}
-          value={props.profile.initial.acidContentPct}
-        />
-      ) : null}
-    </div>
-  ) : null
+  return (
+    <Paper className="ProfileGraph" elevation={1} sx={{ p: 2 }}>
+      <Stack spacing={2}>
+        <Typography variant="h6">Balance</Typography>
+
+        <div className="balance-graph">
+          {volumeRange ? (
+            <Column
+              title="Volume"
+              range={volumeRange}
+              value={props.profile.volumeOz}
+            />
+          ) : null}
+          {abvRange ? (
+            <Column title="ABV" range={abvRange} value={props.profile.abv} />
+          ) : null}
+          {sugarRange ? (
+            <Column
+              title="Sweetness"
+              range={sugarRange}
+              value={props.profile.sugarContentPct}
+            />
+          ) : null}
+          {acidRange ? (
+            <Column
+              title="Acidity"
+              range={acidRange}
+              value={props.profile.acidContentPct}
+            />
+          ) : null}
+        </div>
+      </Stack>
+    </Paper>
+  )
 }
 
 interface ColumnProps {
@@ -70,11 +68,11 @@ interface ColumnProps {
 
 function Column(props: ColumnProps) {
   const theme = useTheme()
-  const max = Math.max(props.range.min, props.range.max, props.value)
+  const base = Math.max(props.range.min, props.range.max, props.value)
 
-  const lowest = (props.range.min / max) * 100
-  const highest = (props.range.max / max) * 100
-  const value = (props.value / max) * 100
+  const lowest = (props.range.min / base) * 100
+  const highest = (props.range.max / base) * 100
+  const value = (props.value / base) * 100
 
   return (
     <div className="column">
