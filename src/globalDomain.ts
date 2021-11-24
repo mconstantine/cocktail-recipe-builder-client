@@ -43,11 +43,24 @@ const MinMaxRange = t.type(
   'MinMaxRange',
 )
 
+export const TechniqueCode = t.keyof(
+  {
+    BUILT: true,
+    STIRRED: true,
+    SHAKEN: true,
+    SHAKEN_WITH_EGG: true,
+    BLENDED: true,
+    CARBONATED: true,
+  },
+  'TechniqueCode',
+)
+export type TechniqueCode = t.TypeOf<typeof TechniqueCode>
+
 export const Technique = t.type(
   {
     id: t.Int,
     name: t.string,
-    code: t.string,
+    code: TechniqueCode,
     ranges: t.array(MinMaxRange),
   },
   'Technique',
@@ -60,4 +73,5 @@ export interface CocktailProfile {
   sugarContentPct: number
   acidContentPct: number
   abv: number
+  dilution: number
 }

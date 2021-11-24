@@ -1,5 +1,6 @@
 import { CocktailProfile } from '../globalDomain'
 import { CocktailOutput } from '../pages/Cocktail/domain'
+import { computeDilution } from './computeDilution'
 
 function getContentPct(
   cocktail: CocktailOutput,
@@ -42,12 +43,14 @@ export function getCocktailProfile(cocktail: CocktailOutput): CocktailProfile {
     )
 
   const initialVolumeMl = initialIngredientsVolumeMl + initialAdditionalVolumeMl
+  const abv = getContentPct(cocktail, initialVolumeMl, 'ABV')
 
   return {
     volumeMl: initialVolumeMl,
     volumeOz: initialVolumeMl / 30,
-    abv: getContentPct(cocktail, initialVolumeMl, 'ABV'),
+    abv,
     sugarContentPct: getContentPct(cocktail, initialVolumeMl, 'Sugar'),
     acidContentPct: getContentPct(cocktail, initialVolumeMl, 'Acid'),
+    dilution: computeDilution(abv, cocktail.technique),
   }
 }
