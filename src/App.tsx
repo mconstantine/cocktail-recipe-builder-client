@@ -2,6 +2,7 @@ import { Outlet } from 'react-router-dom'
 import { Header } from './components/Header'
 import { ThemeProvider, createTheme, responsiveFontSizes } from '@mui/material'
 import { useEffect, useState } from 'react'
+import { BreadcrumbsProvider } from './contexts/BreadcrumbsContext'
 
 export function App() {
   const shouldBeDark =
@@ -39,9 +40,11 @@ export function App() {
 
   return (
     <ThemeProvider theme={theme}>
-      <Header>
-        <Outlet />
-      </Header>
+      <BreadcrumbsProvider>
+        <Header>
+          <Outlet />
+        </Header>
+      </BreadcrumbsProvider>
     </ThemeProvider>
   )
 }

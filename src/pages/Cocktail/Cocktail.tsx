@@ -1,26 +1,44 @@
-import {
-  Breadcrumbs,
-  Stack,
-  Link as MUILink,
-  Typography,
-  List,
-  ListItem,
-  ListItemText,
-} from '@mui/material'
+import { Stack, Typography, List, ListItem, ListItemText } from '@mui/material'
 import { Box } from '@mui/system'
+import { option } from 'fp-ts'
 import { pipe } from 'fp-ts/function'
+import { useMemo } from 'react'
 import { useParams } from 'react-router'
 import { foldQuery, useGet } from '../../api/useApi'
 import { ErrorAlert } from '../../components/ErrorAlert'
-import { Link } from '../../components/Link'
 import { Loading } from '../../components/Loading'
 import { ProfileGraph } from '../../components/ProfileGraph/ProfileGraph'
+import { useSetBreadcrumbs } from '../../contexts/BreadcrumbsContext'
 import { getCocktailProfile } from '../../utils/getCocktailProfile'
 import { getCocktail } from './api'
 
 export function Cocktail() {
   const params = useParams()
   const [cocktail, reload] = pipe(params.id!, parseInt, getCocktail, useGet)
+
+  const breadcrumbs = useMemo(
+    () =>
+      pipe(
+        cocktail,
+        foldQuery(
+          () => [],
+          () => [],
+          ({ name }) => [
+            {
+              label: 'Cocktails',
+              path: option.some('/cocktails'),
+            },
+            {
+              label: name,
+              path: option.none,
+            },
+          ],
+        ),
+      ),
+    [cocktail],
+  )
+
+  useSetBreadcrumbs(breadcrumbs)
 
   return pipe(
     cocktail,
@@ -43,12 +61,6 @@ export function Cocktail() {
 
         return (
           <Stack spacing={4}>
-            <Breadcrumbs aria-label="breadcrumb">
-              <MUILink href="/cocktails" component={Link}>
-                Cocktails
-              </MUILink>
-              <Typography color="text.primary">{cocktail.name}</Typography>
-            </Breadcrumbs>
             <Typography variant="h1">{cocktail.name}</Typography>
             <Box>
               <Typography variant="h6">Ingredients</Typography>
