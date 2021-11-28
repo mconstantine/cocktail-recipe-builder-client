@@ -7,13 +7,17 @@ import { IngredientInput } from '../pages/CreateIngredient/domain'
 import { Ingredient } from '../pages/Ingredient/domain'
 import { Form } from './Form'
 import { PercentageField } from './PercentageField'
-import { useNavigate } from 'react-router'
 import { CommandHookOutput, foldCommand } from '../api/useApi'
 import { ErrorAlert } from './ErrorAlert'
+import { IO } from 'fp-ts/IO'
+import { Reader } from 'fp-ts/Reader'
 
 interface Props {
   ingredient: Option<Ingredient>
   command: CommandHookOutput<IngredientInput, Ingredient>
+  onSubmit: Reader<Ingredient, unknown>
+  onCancel: IO<unknown>
+  submitLabel: string
 }
 
 function ingredientToInput(ingredient: Ingredient): IngredientInput {
@@ -36,7 +40,7 @@ function ingredientToInput(ingredient: Ingredient): IngredientInput {
 }
 
 export function IngredientForm(props: Props) {
-  const navigate = useNavigate()
+  const { onSubmit } = props
   const [status, submit] = props.command
 
   const [input, setInput] = useState<IngredientInput>(
@@ -62,14 +66,15 @@ export function IngredientForm(props: Props) {
 
   useEffect(() => {
     if (status.type === 'SUCCESS') {
-      navigate(`/ingredients/${status.data.id}`)
+      onSubmit(status.data)
     }
-  }, [status, navigate])
+  }, [status, onSubmit])
 
   return (
     <Form
       onSubmit={() => submit(input)}
-      submitLabel="Create"
+      onCancel={props.onCancel}
+      submitLabel={props.submitLabel}
       disabled={isDisabled}
     >
       <TextField

@@ -5,6 +5,7 @@ interface Props {
   title?: string
   message: string
   onRetry?: IO<void>
+  retryLabel?: string
 }
 
 export function ErrorAlert(props: Props) {
@@ -14,7 +15,7 @@ export function ErrorAlert(props: Props) {
       action={
         props.onRetry ? (
           <Button color="inherit" size="small" onClick={props.onRetry}>
-            Retry
+            {props.retryLabel || 'Retry'}
           </Button>
         ) : null
       }

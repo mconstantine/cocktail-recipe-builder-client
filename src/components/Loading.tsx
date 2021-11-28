@@ -1,10 +1,11 @@
-import { CircularProgress } from '@mui/material'
-import { Box } from '@mui/system'
+import { CircularProgress, Stack } from '@mui/material'
+import { PropsWithChildren } from 'react'
 
-export function Loading() {
+export function Loading(props: PropsWithChildren<{}>) {
   return (
-    <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+    <Stack spacing={2} alignItems="center">
       <CircularProgress />
-    </Box>
+      {props.children}
+    </Stack>
   )
 }
