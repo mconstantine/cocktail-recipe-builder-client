@@ -4,7 +4,7 @@ import { IO } from 'fp-ts/IO'
 interface Props {
   title?: string
   message: string
-  onRetry: IO<void>
+  onRetry?: IO<void>
 }
 
 export function ErrorAlert(props: Props) {
@@ -12,9 +12,11 @@ export function ErrorAlert(props: Props) {
     <Alert
       severity="error"
       action={
-        <Button color="inherit" size="small" onClick={props.onRetry}>
-          Retry
-        </Button>
+        props.onRetry ? (
+          <Button color="inherit" size="small" onClick={props.onRetry}>
+            Retry
+          </Button>
+        ) : null
       }
     >
       <AlertTitle>{props.title || 'Error'}</AlertTitle>

@@ -202,10 +202,12 @@ export function foldQuery<E, O, R>(
   }
 }
 
+export type QueryHookOutput<T> = [query: Query<Error, T>, reload: IO<void>]
+
 function useQuery<I, II, O, OO>(
   request: Request<I, II, O, OO>,
   input?: I,
-): [query: Query<Error, O>, reload: IO<void>] {
+): QueryHookOutput<O> {
   const [query, setQuery] = useState<Query<Error, O>>(loadingQuery())
 
   const makeSendRequest = (request: Request<I, II, O, OO>, input?: I) =>
@@ -229,6 +231,91 @@ function useQuery<I, II, O, OO>(
   return [query, () => reloadQuery(request, input)]
 }
 
+interface ReadyCommand {
+  type: 'READY'
+}
+
+interface LoadingCommand {
+  type: 'LOADING'
+}
+
+interface SuccessCommand<O> {
+  type: 'SUCCESS'
+  data: O
+}
+
+interface ErrorCommand<E> {
+  type: 'ERROR'
+  error: E
+}
+
+type Command<E, O> =
+  | ReadyCommand
+  | LoadingCommand
+  | SuccessCommand<O>
+  | ErrorCommand<E>
+
+function readyCommand(): ReadyCommand {
+  return { type: 'READY' }
+}
+
+function loadingCommand(): LoadingCommand {
+  return { type: 'LOADING' }
+}
+
+function successCommand<O>(data: O): SuccessCommand<O> {
+  return { type: 'SUCCESS', data }
+}
+
+function errorCommand<E>(error: E): ErrorCommand<E> {
+  return { type: 'ERROR', error }
+}
+
+export function foldCommand<E, O, R>(
+  whenReady: IO<R>,
+  whenLoading: IO<R>,
+  whenError: Reader<E, R>,
+  whenSuccess: Reader<O, R>,
+): Reader<Command<E, O>, R> {
+  return command => {
+    switch (command.type) {
+      case 'READY':
+        return whenReady()
+      case 'LOADING':
+        return whenLoading()
+      case 'ERROR':
+        return whenError(command.error)
+      case 'SUCCESS':
+        return whenSuccess(command.data)
+    }
+  }
+}
+
+export type CommandHookOutput<I, O> = [
+  status: Command<Error, O>,
+  command: Reader<I, void>,
+]
+
+function useCommand<I, II, O, OO>(
+  request: Request<I, II, O, OO>,
+): CommandHookOutput<I, O> {
+  const [status, setStatus] = useState<Command<Error, O>>(readyCommand())
+
+  const command = (input: I) => {
+    setStatus(loadingCommand())
+
+    pipe(
+      makeRequest(request, input),
+      taskEither.bimap(
+        flow(errorCommand, setStatus),
+        flow(successCommand, setStatus),
+      ),
+    )()
+  }
+
+  return [status, command]
+}
+
 export function useGet<I, II, O, OO>(
   request: GetRequest<I, II, O, OO>,
   input?: I,
@@ -236,23 +323,14 @@ export function useGet<I, II, O, OO>(
   return useQuery(request, input)
 }
 
-export function usePost<I, II, O, OO>(
-  request: PostRequest<I, II, O, OO>,
-  input?: I,
-) {
-  return useQuery(request, input)
+export function usePost<I, II, O, OO>(request: PostRequest<I, II, O, OO>) {
+  return useCommand(request)
 }
 
-export function usePut<I, II, O, OO>(
-  request: PutRequest<I, II, O, OO>,
-  input?: I,
-) {
-  return useQuery(request, input)
+export function usePut<I, II, O, OO>(request: PutRequest<I, II, O, OO>) {
+  return useCommand(request)
 }
 
-export function useDelete<I, II, O, OO>(
-  request: DeleteRequest<I, II, O, OO>,
-  input?: I,
-) {
-  return useQuery(request, input)
+export function useDelete<I, II, O, OO>(request: DeleteRequest<I, II, O, OO>) {
+  return useCommand(request)
 }

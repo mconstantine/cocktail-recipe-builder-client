@@ -8,6 +8,7 @@ import { Ingredients } from './pages/Ingredients/Ingredients'
 import { Ingredient } from './pages/Ingredient/Ingredient'
 import { Cocktails } from './pages/Cocktails/Cocktails'
 import { Cocktail } from './pages/Cocktail/Cocktail'
+import { CreateIngredient } from './pages/CreateIngredient/CreateIngredient'
 
 ReactDOM.render(
   <React.StrictMode>
@@ -15,6 +16,7 @@ ReactDOM.render(
       <Routes>
         <Route path="/" element={<App />}>
           <Route path="ingredients" element={<Ingredients />} />
+          <Route path="ingredients/create" element={<CreateIngredient />} />
           <Route path="ingredients/:id" element={<Ingredient />} />
           <Route path="cocktails" element={<Cocktails />} />
           <Route path="cocktails/:id" element={<Cocktail />} />

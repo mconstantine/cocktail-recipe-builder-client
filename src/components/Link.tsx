@@ -1,4 +1,4 @@
-import { PropsWithChildren } from 'react'
+import { forwardRef, PropsWithChildren } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 
 interface Props {
@@ -6,10 +6,17 @@ interface Props {
   style?: React.CSSProperties
 }
 
-export function Link(props: PropsWithChildren<Props>) {
-  return (
-    <RouterLink className="Link" to={props.href} style={props.style}>
-      {props.children}
-    </RouterLink>
-  )
-}
+export const Link = forwardRef<HTMLAnchorElement, PropsWithChildren<Props>>(
+  (props, ref) => {
+    return (
+      <RouterLink
+        className="Link"
+        to={props.href}
+        style={props.style}
+        ref={ref}
+      >
+        {props.children}
+      </RouterLink>
+    )
+  },
+)

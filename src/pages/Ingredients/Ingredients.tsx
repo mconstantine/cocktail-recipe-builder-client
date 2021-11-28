@@ -1,4 +1,6 @@
+import { Add } from '@mui/icons-material'
 import {
+  Fab,
   List,
   ListItemButton,
   ListItemText,
@@ -10,6 +12,7 @@ import {
 import { option } from 'fp-ts'
 import { pipe } from 'fp-ts/function'
 import { ChangeEvent, useState } from 'react'
+import { useNavigate } from 'react-router'
 import { foldQuery, useGet } from '../../api/useApi'
 import { ErrorAlert } from '../../components/ErrorAlert'
 import { Link } from '../../components/Link'
@@ -26,6 +29,7 @@ export function Ingredients() {
   })
 
   const [ingredients] = useGet(getIngredients, input)
+  const navigate = useNavigate()
 
   const onQueryChange = useDebounce((query: string) => {
     setInput(input => ({ ...input, query: option.some(query), page: 1 }))
@@ -96,6 +100,14 @@ export function Ingredients() {
           },
         ),
       )}
+      <Fab
+        color="primary"
+        aria-label="create new ingredient"
+        sx={{ position: 'fixed', bottom: 16, right: 16 }}
+        onClick={() => navigate('/ingredients/create')}
+      >
+        <Add />
+      </Fab>
     </Stack>
   )
 }
