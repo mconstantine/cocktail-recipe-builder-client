@@ -54,16 +54,16 @@ export function useRenderBreadcrumbs(): IO<Option<NonNullable<ReactNode>>> {
   return () =>
     breadcrumbs.length
       ? option.some(
-          <Breadcrumbs aria-label="breadcrumb" sx={{ flexGrow: 1 }}>
+          <Breadcrumbs
+            aria-label="breadcrumb"
+            color="inherit"
+            sx={{ flexGrow: 1 }}
+          >
             {breadcrumbs.map(({ label, path }, index) =>
               pipe(
                 path,
                 option.fold(
-                  () => (
-                    <Typography color="text.primary" key={index}>
-                      {label}
-                    </Typography>
-                  ),
+                  () => <Typography key={index}>{label}</Typography>,
                   path => (
                     <MUILink key={index} href={path} component={Link}>
                       {label}
