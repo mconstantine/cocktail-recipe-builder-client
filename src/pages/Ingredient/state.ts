@@ -13,7 +13,11 @@ interface DeletingState {
   error: boolean
 }
 
-export type State = ShowingState | EditingState | DeletingState
+interface ErrorState {
+  type: 'Error'
+}
+
+export type State = ShowingState | EditingState | DeletingState | ErrorState
 
 export function showingState(): ShowingState {
   return { type: 'Showing' }

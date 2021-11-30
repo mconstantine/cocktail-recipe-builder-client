@@ -9,16 +9,10 @@ import {
   Typography,
 } from '@mui/material'
 import { boolean, option } from 'fp-ts'
-import { constVoid, pipe } from 'fp-ts/function'
+import { constVoid, flow, pipe } from 'fp-ts/function'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
-import {
-  foldCommand,
-  foldQuery,
-  useDelete,
-  useGet,
-  usePut,
-} from '../../api/useApi'
+import { foldCommand, useDelete, useLazyGet, usePut } from '../../api/useApi'
 import { ErrorAlert } from '../../components/ErrorAlert'
 import { Loading } from '../../components/Loading'
 import { useSetBreadcrumbs } from '../../contexts/BreadcrumbsContext'
@@ -33,15 +27,32 @@ import {
   showingState,
   State,
 } from './state'
+import { Option } from 'fp-ts/Option'
+import { Ingredient as IngredientType } from './domain'
 
 export function Ingredient() {
   const navigate = useNavigate()
   const params = useParams()
   const id = parseInt(params.id!)
-  const [ingredient, reload] = pipe(id, getIngredient, useGet)
   const [state, setState] = useState<State>(showingState())
-  const updateIngredientCommand = usePut(updateIngredient(id))
-  const [deleteStatus, deleteCommand] = useDelete(deleteIngredient(id))
+
+  const [ingredient, setIngredient] = useState<Option<IngredientType>>(
+    option.none,
+  )
+
+  const [, fetchIngredient] = useLazyGet(
+    getIngredient(id),
+    flow(option.some, setIngredient),
+  )
+
+  const updateIngredientCommand = usePut(updateIngredient(id), inredient => {
+    setState(showingState())
+    setIngredient(option.some(inredient))
+  })
+
+  const [deleteStatus, deleteCommand] = useDelete(deleteIngredient(id), () =>
+    navigate('/ingredients'),
+  )
 
   const [deleteDialog, openDeleteDialog] = useConfirmationDialog(
     'Are you sure?',
@@ -53,8 +64,7 @@ export function Ingredient() {
     () =>
       pipe(
         ingredient,
-        foldQuery(
-          () => [],
+        option.fold(
           () => [],
           ({ name }) => [
             {
@@ -74,31 +84,35 @@ export function Ingredient() {
   useSetBreadcrumbs(breadcrumbs)
 
   useEffect(() => {
+    fetchIngredient()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
     pipe(
       deleteStatus,
       foldCommand(
-        constVoid,
         () => setState(deletingState(false)),
         () => setState(deletingState(true)),
-        () => navigate('/ingredients'),
+        constVoid,
       ),
     )
   }, [deleteStatus, navigate])
 
   return pipe(
     ingredient,
-    foldQuery(
+    option.fold(
       () => <Loading />,
-      () => (
-        <ErrorAlert
-          message="Something went wrong while getting the details for this ingredient."
-          onRetry={reload}
-        />
-      ),
       ingredient =>
         pipe(
           state,
           foldState({
+            Error: () => (
+              <ErrorAlert
+                message="Something went wrong while getting the details for this ingredient."
+                onRetry={fetchIngredient}
+              />
+            ),
             Showing: () => (
               <>
                 <Stack>
@@ -137,7 +151,6 @@ export function Ingredient() {
               <IngredientForm
                 ingredient={option.some(ingredient)}
                 command={updateIngredientCommand}
-                onSubmit={() => setState(showingState())}
                 onCancel={() => setState(showingState())}
                 submitLabel="Update"
               />

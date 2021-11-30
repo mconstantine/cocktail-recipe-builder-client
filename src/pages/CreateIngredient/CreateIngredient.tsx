@@ -3,15 +3,15 @@ import { option } from 'fp-ts'
 import { useNavigate } from 'react-router'
 import { usePost } from '../../api/useApi'
 import { IngredientForm } from '../../components/IngredientForm'
-import { Ingredient } from '../Ingredient/domain'
 import { createIngredient } from './api'
 
 export function CreateIngredient() {
-  const command = usePost(createIngredient)
   const navigate = useNavigate()
-
-  const onSubmit = ({ id }: Ingredient) => navigate(`/ingredients/${id}`)
   const onCancel = () => navigate('/ingredients')
+
+  const command = usePost(createIngredient, ({ id }) =>
+    navigate(`/ingredients/${id}`),
+  )
 
   return (
     <Stack spacing={4}>
@@ -19,7 +19,6 @@ export function CreateIngredient() {
       <IngredientForm
         ingredient={option.none}
         command={command}
-        onSubmit={onSubmit}
         onCancel={onCancel}
         submitLabel="Create"
       />

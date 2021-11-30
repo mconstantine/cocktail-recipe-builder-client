@@ -239,21 +239,12 @@ interface LoadingCommand {
   type: 'LOADING'
 }
 
-interface SuccessCommand<O> {
-  type: 'SUCCESS'
-  data: O
-}
-
 interface ErrorCommand<E> {
   type: 'ERROR'
   error: E
 }
 
-type Command<E, O> =
-  | ReadyCommand
-  | LoadingCommand
-  | SuccessCommand<O>
-  | ErrorCommand<E>
+type Command<E> = ReadyCommand | LoadingCommand | ErrorCommand<E>
 
 function readyCommand(): ReadyCommand {
   return { type: 'READY' }
@@ -263,53 +254,47 @@ function loadingCommand(): LoadingCommand {
   return { type: 'LOADING' }
 }
 
-function successCommand<O>(data: O): SuccessCommand<O> {
-  return { type: 'SUCCESS', data }
-}
-
 function errorCommand<E>(error: E): ErrorCommand<E> {
   return { type: 'ERROR', error }
 }
 
-export function foldCommand<E, O, R>(
-  whenReady: IO<R>,
+export function foldCommand<E, R>(
   whenLoading: IO<R>,
   whenError: Reader<E, R>,
-  whenSuccess: Reader<O, R>,
-): Reader<Command<E, O>, R> {
+  whenReady: IO<R>,
+): Reader<Command<E>, R> {
   return command => {
     switch (command.type) {
-      case 'READY':
-        return whenReady()
       case 'LOADING':
         return whenLoading()
       case 'ERROR':
         return whenError(command.error)
-      case 'SUCCESS':
-        return whenSuccess(command.data)
+      case 'READY':
+        return whenReady()
     }
   }
 }
 
-export type CommandHookOutput<I, O> = [
-  status: Command<Error, O>,
+export type CommandHookOutput<I> = [
+  status: Command<Error>,
   command: Reader<I, void>,
 ]
 
 function useCommand<I, II, O, OO>(
   request: Request<I, II, O, OO>,
-): CommandHookOutput<I, O> {
-  const [status, setStatus] = useState<Command<Error, O>>(readyCommand())
+  onSuccess: Reader<O, unknown>,
+): CommandHookOutput<I> {
+  const [status, setStatus] = useState<Command<Error>>(readyCommand())
 
   const command = (input: I) => {
     setStatus(loadingCommand())
 
     pipe(
       makeRequest(request, input),
-      taskEither.bimap(
-        flow(errorCommand, setStatus),
-        flow(successCommand, setStatus),
-      ),
+      taskEither.bimap(flow(errorCommand, setStatus), data => {
+        setStatus(readyCommand())
+        onSuccess(data)
+      }),
     )()
   }
 
@@ -323,14 +308,30 @@ export function useGet<I, II, O, OO>(
   return useQuery(request, input)
 }
 
-export function usePost<I, II, O, OO>(request: PostRequest<I, II, O, OO>) {
-  return useCommand(request)
+export function useLazyGet<I, II, O, OO>(
+  request: GetRequest<I, II, O, OO>,
+  onSuccess: Reader<O, unknown>,
+) {
+  return useCommand(request, onSuccess)
 }
 
-export function usePut<I, II, O, OO>(request: PutRequest<I, II, O, OO>) {
-  return useCommand(request)
+export function usePost<I, II, O, OO>(
+  request: PostRequest<I, II, O, OO>,
+  onSuccess: Reader<O, unknown>,
+) {
+  return useCommand(request, onSuccess)
 }
 
-export function useDelete<I, II, O, OO>(request: DeleteRequest<I, II, O, OO>) {
-  return useCommand(request)
+export function usePut<I, II, O, OO>(
+  request: PutRequest<I, II, O, OO>,
+  onSuccess: Reader<O, unknown>,
+) {
+  return useCommand(request, onSuccess)
+}
+
+export function useDelete<I, II, O, OO>(
+  request: DeleteRequest<I, II, O, OO>,
+  onSuccess: Reader<O, unknown>,
+) {
+  return useCommand(request, onSuccess)
 }

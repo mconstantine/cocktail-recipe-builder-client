@@ -2,7 +2,7 @@ import { TextField } from '@mui/material'
 import { option } from 'fp-ts'
 import { constFalse, constNull, constTrue, pipe } from 'fp-ts/function'
 import { Option } from 'fp-ts/Option'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { IngredientInput } from '../pages/CreateIngredient/domain'
 import { Ingredient } from '../pages/Ingredient/domain'
 import { Form } from './Form'
@@ -10,12 +10,10 @@ import { PercentageField } from './PercentageField'
 import { CommandHookOutput, foldCommand } from '../api/useApi'
 import { ErrorAlert } from './ErrorAlert'
 import { IO } from 'fp-ts/IO'
-import { Reader } from 'fp-ts/Reader'
 
 interface Props {
   ingredient: Option<Ingredient>
-  command: CommandHookOutput<IngredientInput, Ingredient>
-  onSubmit: Reader<Ingredient, unknown>
+  command: CommandHookOutput<IngredientInput>
   onCancel: IO<unknown>
   submitLabel: string
 }
@@ -40,7 +38,6 @@ function ingredientToInput(ingredient: Ingredient): IngredientInput {
 }
 
 export function IngredientForm(props: Props) {
-  const { onSubmit } = props
   const [status, submit] = props.command
 
   const [input, setInput] = useState<IngredientInput>(
@@ -61,14 +58,8 @@ export function IngredientForm(props: Props) {
 
   const isDisabled = pipe(
     status,
-    foldCommand(constFalse, constTrue, constFalse, constFalse),
+    foldCommand(constTrue, constFalse, constFalse),
   )
-
-  useEffect(() => {
-    if (status.type === 'SUCCESS') {
-      onSubmit(status.data)
-    }
-  }, [status, onSubmit])
 
   return (
     <Form
@@ -108,7 +99,6 @@ export function IngredientForm(props: Props) {
       {pipe(
         status,
         foldCommand(
-          constNull,
           constNull,
           () => (
             <ErrorAlert message="An error has occurred while creating the ingredient. Please try again." />
