@@ -88,6 +88,12 @@ export function Cocktail() {
               <List>
                 <ListItem>
                   <ListItemText
+                    primary={cocktail.technique.name}
+                    secondary="Technique"
+                  />
+                </ListItem>
+                <ListItem>
+                  <ListItemText
                     primary={`${volumeMl.toFixed(2)} ml (${volumeOz.toFixed(
                       2,
                     )} oz)`}
