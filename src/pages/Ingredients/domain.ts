@@ -1,6 +1,7 @@
 import * as t from 'io-ts'
 import { optionFromNullable } from 'io-ts-types'
 import { PaginationInput, PaginationOutput } from '../../api/apiDomain'
+import { Ingredient } from '../Ingredient/domain'
 
 export const IngredientsInput = t.intersection(
   [
@@ -13,14 +14,5 @@ export const IngredientsInput = t.intersection(
 )
 export type IngredientsInput = t.TypeOf<typeof IngredientsInput>
 
-export const IngredientIndexOutput = t.type(
-  {
-    id: t.Int,
-    name: t.string,
-  },
-  'IngredientIndexOutput',
-)
-export type IngredientIndexOutput = t.TypeOf<typeof IngredientIndexOutput>
-
-export const IngredientsOutput = PaginationOutput(IngredientIndexOutput)
+export const IngredientsOutput = PaginationOutput(Ingredient)
 export type IngredientsOutput = t.TypeOf<typeof IngredientsOutput>

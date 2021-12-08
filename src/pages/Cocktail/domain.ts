@@ -1,21 +1,14 @@
 import * as t from 'io-ts'
 import { DateFromISOString } from 'io-ts-types'
 import { Technique, Unit } from '../../globalDomain'
-import { Range } from '../Ingredient/domain'
+import { Ingredient } from '../Ingredient/domain'
 
 export const CocktailIngredient = t.type(
   {
     id: t.Int,
     amount: t.number,
     unit: Unit,
-    ingredient: t.type(
-      {
-        id: t.Int,
-        name: t.string,
-        ranges: t.array(Range),
-      },
-      'Ingredient',
-    ),
+    ingredient: Ingredient,
   },
   'CocktailIngredient',
 )

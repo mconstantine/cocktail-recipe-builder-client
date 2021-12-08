@@ -1,7 +1,12 @@
-import { Add, Save } from '@mui/icons-material'
+import { Add, Delete } from '@mui/icons-material'
 import {
   Autocomplete,
   Button,
+  IconButton,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemText,
   Stack,
   TextField,
   Typography,
@@ -13,10 +18,10 @@ import { Reader } from 'fp-ts/Reader'
 import { NonEmptyString } from 'io-ts-types'
 import { useReducer, useState } from 'react'
 import { useGet } from '../../api/useApi'
-import { query, Unit } from '../../globalDomain'
+import { getIngredientRanges, query, Unit } from '../../globalDomain'
 import { useDebounce } from '../../hooks/useDebounce'
+import { CocktailIngredient } from '../../pages/Cocktail/domain'
 import { getUnits } from '../../pages/CreateCocktail/api'
-import { CocktailIngredientInput } from '../../pages/CreateCocktail/domain'
 import { getIngredients } from '../../pages/Ingredients/api'
 import {
   IngredientsInput,
@@ -24,21 +29,27 @@ import {
 } from '../../pages/Ingredients/domain'
 import { NumberField } from '../NumberField'
 import {
+  cancelAction,
   foldState,
+  importAction,
   isStateValid,
   reducer,
+  saveAction,
   startAction,
+  State,
+  stateToCocktailIngredient,
   updateAmountAction,
   updateIngredientAction,
   updateUnitAction,
 } from './IngredientsFormState'
 
 interface Props {
-  ingredients: CocktailIngredientInput[]
-  onChange: Reader<CocktailIngredientInput[], unknown>
+  ingredients: CocktailIngredient[]
+  onChange: Reader<CocktailIngredient[], unknown>
+  disabled?: boolean
 }
 
-export function IngredientsForm(_props: Props) {
+export function IngredientsForm(props: Props) {
   const [state, dispatch] = useReducer(reducer, { type: 'READY' })
 
   const [ingredientsQuery, setIngredientsQuery] = useState<IngredientsInput>({
@@ -59,14 +70,62 @@ export function IngredientsForm(_props: Props) {
   const [ingredients] = useGet(getIngredients, ingredientsQuery)
   const [units] = useGet(getUnits)
 
+  const onAddIngredientClick = (ingredient: CocktailIngredient) => {
+    props.onChange([
+      ...props.ingredients.filter(
+        i => i.ingredient.id !== ingredient.ingredient.id,
+      ),
+      ingredient,
+    ])
+    dispatch(saveAction())
+  }
+
+  const onDeleteIngredientClick = (ingredient: CocktailIngredient) => {
+    props.onChange(
+      props.ingredients.filter(
+        i => i.ingredient.id !== ingredient.ingredient.id,
+      ),
+    )
+  }
+
   return (
     <Stack spacing={4}>
       <Typography variant="h6">Ingredients:</Typography>
+      {props.ingredients.length ? (
+        <List>
+          {props.ingredients.map(ingredient => (
+            <ListItem
+              key={ingredient.id}
+              secondaryAction={
+                <IconButton
+                  edge="end"
+                  aria-label="delete"
+                  disabled={props.disabled}
+                  onClick={() => onDeleteIngredientClick(ingredient)}
+                >
+                  <Delete />
+                </IconButton>
+              }
+            >
+              <ListItemButton
+                onClick={() => dispatch(importAction(ingredient))}
+                disabled={props.disabled}
+              >
+                <ListItemText
+                  primary={`${ingredient.amount}${ingredient.unit.unit} ${ingredient.ingredient.name}`}
+                  secondary={getIngredientRanges(ingredient.ingredient)}
+                />
+              </ListItemButton>
+            </ListItem>
+          ))}
+        </List>
+      ) : null}
       {pipe(
         state,
         foldState({
           READY: constNull,
           ADDING: ({ ingredient, amount, unit }) => (
+            // TODO: this could be an actual form
             <>
               <Autocomplete
                 options={pipe(
@@ -84,6 +143,15 @@ export function IngredientsForm(_props: Props) {
                 onChange={(_, value) =>
                   value && dispatch(updateIngredientAction(value))
                 }
+                disabled={props.disabled}
+                renderOption={(props, option) => (
+                  <ListItem {...props}>
+                    <ListItemText
+                      primary={`${option.name}`}
+                      secondary={getIngredientRanges(option)}
+                    />
+                  </ListItem>
+                )}
               />
               <NumberField
                 label="Amount"
@@ -93,6 +161,7 @@ export function IngredientsForm(_props: Props) {
                 )}
                 onChange={flow(updateAmountAction, dispatch)}
                 min={0}
+                disabled={props.disabled}
               />
               <Autocomplete
                 options={pipe(
@@ -108,6 +177,7 @@ export function IngredientsForm(_props: Props) {
                 onChange={(_, value) =>
                   value && dispatch(updateUnitAction(value))
                 }
+                disabled={props.disabled}
               />
             </>
           ),
@@ -122,23 +192,58 @@ export function IngredientsForm(_props: Props) {
                 variant="outlined"
                 startIcon={<Add />}
                 onClick={() => dispatch(startAction())}
+                disabled={props.disabled}
               >
                 Add
               </Button>
             ),
             ADDING: state => (
-              <Button
-                variant="outlined"
-                startIcon={<Save />}
-                disabled={!isStateValid(state)}
-                onClick={() => console.log('TODO: should call props.onChange')}
-              >
-                Save
-              </Button>
+              <Stack direction="row" spacing={2}>
+                <AddIngredientButton
+                  state={state}
+                  onClick={onAddIngredientClick}
+                  disabled={props.disabled}
+                />
+                <Button
+                  color="inherit"
+                  variant="text"
+                  onClick={() => dispatch(cancelAction())}
+                  disabled={props.disabled}
+                >
+                  Close
+                </Button>
+              </Stack>
             ),
           }),
         )}
       </Box>
     </Stack>
+  )
+}
+
+interface AddIngredientButtonProps {
+  state: Extract<State, { type: 'ADDING' }>
+  onClick: Reader<CocktailIngredient, unknown>
+  disabled?: boolean
+}
+
+function AddIngredientButton(props: AddIngredientButtonProps) {
+  const addIngredient = () => {
+    if (!isStateValid(props.state)) {
+      return
+    }
+
+    props.onClick(stateToCocktailIngredient(props.state))
+  }
+
+  return (
+    <Button
+      variant="outlined"
+      startIcon={<Add />}
+      disabled={!isStateValid(props.state) || props.disabled}
+      onClick={addIngredient}
+    >
+      Add
+    </Button>
   )
 }

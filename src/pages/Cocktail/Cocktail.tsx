@@ -12,7 +12,7 @@ import {
   Breadcrumb,
   useSetBreadcrumbs,
 } from '../../contexts/BreadcrumbsContext'
-import { query } from '../../globalDomain'
+import { getIngredientRanges, query } from '../../globalDomain'
 import { getCocktailProfile } from '../../utils/getCocktailProfile'
 import { getCocktail } from './api'
 
@@ -70,12 +70,7 @@ export function Cocktail() {
                   <ListItem key={ingredient.id}>
                     <ListItemText
                       primary={`${ingredient.amount} ${ingredient.unit.unit} ${ingredient.ingredient.name}`}
-                      secondary={ingredient.ingredient.ranges
-                        .map(
-                          range =>
-                            `${range.amount}${range.unit.unit} ${range.unit.name}`,
-                        )
-                        .join(', ')}
+                      secondary={getIngredientRanges(ingredient.ingredient)}
                     />
                   </ListItem>
                 ))}

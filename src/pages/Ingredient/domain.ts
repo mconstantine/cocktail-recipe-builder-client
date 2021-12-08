@@ -11,7 +11,7 @@ export const Range = t.type(
   'Range',
 )
 
-export const IngredientOutput = t.type(
+export const Ingredient = t.type(
   {
     id: t.Int,
     name: t.string,
@@ -21,4 +21,4 @@ export const IngredientOutput = t.type(
   },
   'Ingredient',
 )
-export type Ingredient = t.TypeOf<typeof IngredientOutput>
+export type Ingredient = t.TypeOf<typeof Ingredient>

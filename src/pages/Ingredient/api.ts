@@ -5,25 +5,25 @@ import {
   makePutRequest,
 } from '../../api/useApi'
 import { IngredientInput } from '../CreateIngredient/domain'
-import { IngredientOutput } from './domain'
+import { Ingredient } from './domain'
 
 export const getIngredient = (id: number) =>
   makeGetRequest({
     url: `/ingredients/${id}`,
     inputCodec: t.void,
-    outputCodec: IngredientOutput,
+    outputCodec: Ingredient,
   })
 
 export const updateIngredient = (id: number) =>
   makePutRequest({
     url: `/ingredients/${id}`,
     inputCodec: IngredientInput,
-    outputCodec: IngredientOutput,
+    outputCodec: Ingredient,
   })
 
 export const deleteIngredient = (id: number) =>
   makeDeleteRequest({
     url: `/ingredients/${id}`,
     inputCodec: t.void,
-    outputCodec: IngredientOutput,
+    outputCodec: Ingredient,
   })

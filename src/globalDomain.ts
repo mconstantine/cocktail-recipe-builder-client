@@ -1,4 +1,5 @@
 import * as t from 'io-ts'
+import { Ingredient } from './pages/Ingredient/domain'
 
 const UnitCommon = t.type(
   {
@@ -77,3 +78,9 @@ export interface CocktailProfile {
 }
 
 export * as query from './api/Query'
+
+export function getIngredientRanges(ingredient: Ingredient): string {
+  return ingredient.ranges
+    .map(range => `${range.amount}${range.unit.unit} ${range.unit.name}`)
+    .join(', ')
+}
