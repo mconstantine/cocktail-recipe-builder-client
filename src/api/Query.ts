@@ -411,7 +411,7 @@ export const Applicative: Applicative2<URI> = {
 export const chainW =
   <E2, A, B>(f: Reader<A, Query<E2, B>>) =>
   <E1>(ma: Query<E1, A>): Query<E1 | E2, B> =>
-    pipe(ma, chain<E1 | E2, A, B>(f))
+    pipe(ma, fold<E1, A, Query<E1 | E2, B>>(loading, left, f))
 
 export const chain: <E, A, B>(
   f: Reader<A, Query<E, B>>,
