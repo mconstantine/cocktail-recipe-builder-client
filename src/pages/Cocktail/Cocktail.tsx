@@ -4,11 +4,15 @@ import { option } from 'fp-ts'
 import { pipe } from 'fp-ts/function'
 import { useMemo } from 'react'
 import { useParams } from 'react-router'
-import { foldQuery, useGet } from '../../api/useApi'
+import { useGet } from '../../api/useApi'
 import { ErrorAlert } from '../../components/ErrorAlert'
 import { Loading } from '../../components/Loading'
 import { ProfileGraph } from '../../components/ProfileGraph/ProfileGraph'
-import { useSetBreadcrumbs } from '../../contexts/BreadcrumbsContext'
+import {
+  Breadcrumb,
+  useSetBreadcrumbs,
+} from '../../contexts/BreadcrumbsContext'
+import { query } from '../../globalDomain'
 import { getCocktailProfile } from '../../utils/getCocktailProfile'
 import { getCocktail } from './api'
 
@@ -20,20 +24,17 @@ export function Cocktail() {
     () =>
       pipe(
         cocktail,
-        foldQuery(
-          () => [],
-          () => [],
-          ({ name }) => [
-            {
-              label: 'Cocktails',
-              path: option.some('/cocktails'),
-            },
-            {
-              label: name,
-              path: option.none,
-            },
-          ],
-        ),
+        query.map(({ name }) => [
+          {
+            label: 'Cocktails',
+            path: option.some('/cocktails'),
+          },
+          {
+            label: name,
+            path: option.none,
+          },
+        ]),
+        query.getOrElse(() => [] as Breadcrumb[]),
       ),
     [cocktail],
   )
@@ -42,7 +43,7 @@ export function Cocktail() {
 
   return pipe(
     cocktail,
-    foldQuery(
+    query.fold(
       () => <Loading />,
       () => (
         <ErrorAlert

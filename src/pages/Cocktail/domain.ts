@@ -3,7 +3,7 @@ import { DateFromISOString } from 'io-ts-types'
 import { Technique, Unit } from '../../globalDomain'
 import { Range } from '../Ingredient/domain'
 
-const CocktailIngredient = t.type(
+export const CocktailIngredient = t.type(
   {
     id: t.Int,
     amount: t.number,
@@ -19,8 +19,9 @@ const CocktailIngredient = t.type(
   },
   'CocktailIngredient',
 )
+export type CocktailIngredient = t.TypeOf<typeof CocktailIngredient>
 
-export const CocktailOutput = t.type(
+export const Cocktail = t.type(
   {
     id: t.Int,
     name: t.string,
@@ -31,4 +32,4 @@ export const CocktailOutput = t.type(
   },
   'Cocktail',
 )
-export type CocktailOutput = t.TypeOf<typeof CocktailOutput>
+export type Cocktail = t.TypeOf<typeof Cocktail>

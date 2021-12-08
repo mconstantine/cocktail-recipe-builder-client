@@ -1,9 +1,9 @@
 import { CocktailProfile } from '../globalDomain'
-import { CocktailOutput } from '../pages/Cocktail/domain'
+import { Cocktail } from '../pages/Cocktail/domain'
 import { computeDilution } from './computeDilution'
 
 function getContentPct(
-  cocktail: CocktailOutput,
+  cocktail: Cocktail,
   finalCocktailVolumeMl: number,
   targetUnitName: string,
 ): number {
@@ -26,7 +26,7 @@ function getContentPct(
   return contentMl / finalCocktailVolumeMl
 }
 
-export function getCocktailProfile(cocktail: CocktailOutput): CocktailProfile {
+export function getCocktailProfile(cocktail: Cocktail): CocktailProfile {
   const initialIngredientsVolumeMl = cocktail.ingredients
     .filter(({ unit: { type } }) => type === 'VOLUME')
     .reduce(

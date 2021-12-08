@@ -1,4 +1,6 @@
+import { Add } from '@mui/icons-material'
 import {
+  Fab,
   List,
   ListItemButton,
   ListItemText,
@@ -10,10 +12,12 @@ import {
 import { option } from 'fp-ts'
 import { pipe } from 'fp-ts/function'
 import { ChangeEvent, useState } from 'react'
-import { foldQuery, useGet } from '../../api/useApi'
+import { useNavigate } from 'react-router'
+import { useGet } from '../../api/useApi'
 import { ErrorAlert } from '../../components/ErrorAlert'
 import { Link } from '../../components/Link'
 import { Loading } from '../../components/Loading'
+import { query } from '../../globalDomain'
 import { useDebounce } from '../../hooks/useDebounce'
 import { getCocktails } from './api'
 import { CocktailsInput } from './domain'
@@ -26,8 +30,9 @@ export function Cocktails() {
   })
 
   const [cocktails] = useGet(getCocktails, input)
+  const navigate = useNavigate()
 
-  const onQueryChange = useDebounce((query: string) => {
+  const [onQueryChange] = useDebounce((query: string) => {
     setInput(input => ({ ...input, query: option.some(query), page: 1 }))
   }, 500)
 
@@ -41,7 +46,7 @@ export function Cocktails() {
       />
       {pipe(
         cocktails,
-        foldQuery(
+        query.fold(
           () => <Loading />,
           () => (
             <ErrorAlert
@@ -96,6 +101,14 @@ export function Cocktails() {
           },
         ),
       )}
+      <Fab
+        color="primary"
+        aria-label="create new ingredient"
+        sx={{ position: 'fixed', bottom: 16, right: 16 }}
+        onClick={() => navigate('/cocktails/create')}
+      >
+        <Add />
+      </Fab>
     </Stack>
   )
 }

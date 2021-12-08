@@ -13,10 +13,11 @@ import { option } from 'fp-ts'
 import { pipe } from 'fp-ts/function'
 import { ChangeEvent, useState } from 'react'
 import { useNavigate } from 'react-router'
-import { foldQuery, useGet } from '../../api/useApi'
+import { useGet } from '../../api/useApi'
 import { ErrorAlert } from '../../components/ErrorAlert'
 import { Link } from '../../components/Link'
 import { Loading } from '../../components/Loading'
+import { query } from '../../globalDomain'
 import { useDebounce } from '../../hooks/useDebounce'
 import { getIngredients } from './api'
 import { IngredientsInput } from './domain'
@@ -31,7 +32,7 @@ export function Ingredients() {
   const [ingredients] = useGet(getIngredients, input)
   const navigate = useNavigate()
 
-  const onQueryChange = useDebounce((query: string) => {
+  const [onQueryChange] = useDebounce((query: string) => {
     setInput(input => ({ ...input, query: option.some(query), page: 1 }))
   }, 500)
 
@@ -45,7 +46,7 @@ export function Ingredients() {
       />
       {pipe(
         ingredients,
-        foldQuery(
+        query.fold(
           () => <Loading />,
           () => (
             <ErrorAlert

@@ -6,6 +6,8 @@ import { taskEither } from 'fp-ts'
 import { pipe, flow } from 'fp-ts/function'
 import { reportErrors } from './reportErrors'
 import { useEffect, useState } from 'react'
+import { query } from '../globalDomain'
+import { Query } from './Query'
 
 const API_URL = process.env['REACT_APP_API_URL']?.replace(/\/?$/, '')
 
@@ -157,69 +159,27 @@ function makeRequest<I, II, O, OO>(
   )
 }
 
-interface LoadingQuery {
-  type: 'LOADING'
-}
-
-interface ReadyQuery<O> {
-  type: 'READY'
-  data: O
-}
-
-interface ErrorQuery<E> {
-  type: 'ERROR'
-  error: E
-}
-
-type Query<E, O> = LoadingQuery | ReadyQuery<O> | ErrorQuery<E>
-
-function loadingQuery(): LoadingQuery {
-  return { type: 'LOADING' }
-}
-
-function readyQuery<O>(data: O): ReadyQuery<O> {
-  return { type: 'READY', data }
-}
-
-function errorQuery<E>(error: E): ErrorQuery<E> {
-  return { type: 'ERROR', error }
-}
-
-export function foldQuery<E, O, R>(
-  whenLoading: IO<R>,
-  whenError: Reader<E, R>,
-  whenReady: Reader<O, R>,
-): Reader<Query<E, O>, R> {
-  return query => {
-    switch (query.type) {
-      case 'LOADING':
-        return whenLoading()
-      case 'ERROR':
-        return whenError(query.error)
-      case 'READY':
-        return whenReady(query.data)
-    }
-  }
-}
-
 export type QueryHookOutput<T> = [query: Query<Error, T>, reload: IO<void>]
 
 function useQuery<I, II, O, OO>(
   request: Request<I, II, O, OO>,
   input?: I,
 ): QueryHookOutput<O> {
-  const [query, setQuery] = useState<Query<Error, O>>(loadingQuery())
+  const [queryState, setQueryState] = useState<Query<Error, O>>(query.loading())
 
   const makeSendRequest = (request: Request<I, II, O, OO>, input?: I) =>
     pipe(
       makeRequest(request, input),
-      taskEither.bimap(flow(errorQuery, setQuery), flow(readyQuery, setQuery)),
+      taskEither.bimap(
+        flow(query.left, setQueryState),
+        flow(query.right, setQueryState),
+      ),
     )
 
   const reloadQuery = (request: Request<I, II, O, OO>, input?: I) => {
     const sendRequest = makeSendRequest(request, input)
 
-    setQuery(loadingQuery())
+    setQueryState(query.loading())
     sendRequest()
   }
 
@@ -228,7 +188,7 @@ function useQuery<I, II, O, OO>(
     // eslint-disable-next-line
   }, [input])
 
-  return [query, () => reloadQuery(request, input)]
+  return [queryState, () => reloadQuery(request, input)]
 }
 
 interface ReadyCommand {

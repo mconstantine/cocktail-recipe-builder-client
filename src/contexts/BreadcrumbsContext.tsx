@@ -14,7 +14,7 @@ import {
 } from 'react'
 import { Link } from '../components/Link'
 
-interface Breadcrumb {
+export interface Breadcrumb {
   label: string
   path: Option<string>
 }

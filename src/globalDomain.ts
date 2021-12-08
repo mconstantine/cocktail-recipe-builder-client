@@ -75,3 +75,5 @@ export interface CocktailProfile {
   abv: number
   dilution: number
 }
+
+export * as query from './api/Query'
