@@ -1,5 +1,12 @@
 import { IO } from 'fp-ts/IO'
-import { constFalse, constNull, constTrue, pipe } from 'fp-ts/function'
+import {
+  constFalse,
+  constNull,
+  constTrue,
+  constVoid,
+  flow,
+  pipe,
+} from 'fp-ts/function'
 import { Option } from 'fp-ts/Option'
 import { useReducer } from 'react'
 import { CommandHookOutput, foldCommand, useGet } from '../../api/useApi'
@@ -14,13 +21,16 @@ import { query, Technique } from '../../globalDomain'
 import { IngredientsForm } from './IngredientsForm'
 import {
   emptyState,
-  isStateValid,
   reducer,
   stateToCocktailInput,
   updateIngredients,
   updateName,
   updateTechnique,
+  validateState,
 } from './CocktailFormState'
+import { getCocktailProfile } from '../../utils/getCocktailProfile'
+import { CocktailProfileList } from '../CocktailProfileList'
+import { ProfileGraph } from '../ProfileGraph/ProfileGraph'
 
 interface Props {
   cocktail: Option<Cocktail>
@@ -35,6 +45,10 @@ export function CocktailForm(props: Props) {
   const [units] = useGet(getUnits)
   const [state, dispatch] = useReducer(reducer, emptyState())
 
+  const validState = validateState(state)
+  const isStateValid = option.isSome(validState)
+  const profile = pipe(validState, option.map(getCocktailProfile))
+
   const onNameChange = (name: string) => dispatch(updateName(name))
 
   const onTechniqueChange = (technique: Option<Technique>) =>
@@ -44,18 +58,13 @@ export function CocktailForm(props: Props) {
     dispatch(updateIngredients(ingredients))
 
   const onSubmit = () => {
-    if (!isStateValid(state)) {
-      return
-    }
-
-    submit(stateToCocktailInput(state))
+    pipe(validState, option.fold(constVoid, flow(stateToCocktailInput, submit)))
   }
 
   const isFormDisabled = pipe(
     status,
     foldCommand(constTrue, constFalse, constFalse),
   )
-
   return pipe(
     sequenceS(query.Apply)({ techniques, units }),
     query.map(({ techniques }) => (
@@ -63,7 +72,7 @@ export function CocktailForm(props: Props) {
         onSubmit={onSubmit}
         onCancel={props.onCancel}
         submitLabel={props.submitLabel}
-        disabled={isFormDisabled || !isStateValid(state)}
+        disabled={isFormDisabled || !isStateValid}
       >
         <TextField
           value={pipe(
@@ -91,6 +100,16 @@ export function CocktailForm(props: Props) {
           disabled={isFormDisabled}
         />
         <Divider />
+        {pipe(
+          { technique: state.technique, profile },
+          sequenceS(option.Apply),
+          option.fold(constNull, ({ profile, technique }) => (
+            <>
+              <ProfileGraph profile={profile} technique={technique} />
+              <CocktailProfileList profile={profile} technique={technique} />
+            </>
+          )),
+        )}
       </Form>
     )),
     query.getOrElse<Error, JSX.Element | null>(constNull),

@@ -13,7 +13,7 @@ import {
 } from '@mui/material'
 import { Box } from '@mui/system'
 import { option } from 'fp-ts'
-import { constNull, pipe, flow, constVoid } from 'fp-ts/function'
+import { constNull, pipe, flow, constVoid, constFalse } from 'fp-ts/function'
 import { Reader } from 'fp-ts/Reader'
 import { NonEmptyString } from 'io-ts-types'
 import { useReducer, useState } from 'react'
@@ -50,6 +50,14 @@ interface Props {
 
 export function IngredientsForm(props: Props) {
   const [state, dispatch] = useReducer(reducer, { type: 'READY' })
+
+  const isStateValid = pipe(
+    state,
+    foldState({
+      READY: constFalse,
+      ADDING: flow(validateState, option.isSome),
+    }),
+  )
 
   const [ingredientsQuery, setIngredientsQuery] = useState<IngredientsInput>({
     page: 1,
@@ -192,6 +200,7 @@ export function IngredientsForm(props: Props) {
                   variant="outlined"
                   startIcon={<Save />}
                   onClick={onAddIngredientClick}
+                  disabled={props.disabled || !isStateValid}
                 >
                   Save
                 </Button>

@@ -5,6 +5,7 @@ import { pipe } from 'fp-ts/function'
 import { useMemo } from 'react'
 import { useParams } from 'react-router'
 import { useGet } from '../../api/useApi'
+import { CocktailProfileList } from '../../components/CocktailProfileList'
 import { ErrorAlert } from '../../components/ErrorAlert'
 import { Loading } from '../../components/Loading'
 import { ProfileGraph } from '../../components/ProfileGraph/ProfileGraph'
@@ -53,12 +54,6 @@ export function Cocktail() {
       ),
       cocktail => {
         const profile = getCocktailProfile(cocktail)
-        const dilutionAddendum = 1 + profile.dilution / 100
-        const volumeMl = profile.volumeMl * dilutionAddendum
-        const volumeOz = volumeMl / 30
-        const abv = profile.abv / dilutionAddendum
-        const sugarContentPct = profile.sugarContentPct / dilutionAddendum
-        const acidContentPct = profile.acidContentPct / dilutionAddendum
 
         return (
           <Stack spacing={4}>
@@ -76,52 +71,11 @@ export function Cocktail() {
                 ))}
               </List>
             </Box>
-            <Box>
-              <ProfileGraph profile={profile} technique={cocktail.technique} />
-            </Box>
-            <Box>
-              <Typography variant="h6">Profile</Typography>
-              <List>
-                <ListItem>
-                  <ListItemText
-                    primary={cocktail.technique.name}
-                    secondary="Technique"
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemText
-                    primary={`${volumeMl.toFixed(2)} ml (${volumeOz.toFixed(
-                      2,
-                    )} oz)`}
-                    secondary="Volume"
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemText
-                    primary={`${abv.toFixed(2)}%`}
-                    secondary="ABV"
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemText
-                    primary={`${sugarContentPct.toFixed(2)}%`}
-                    secondary="Sugar content"
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemText
-                    primary={`${acidContentPct.toFixed(2)}%`}
-                    secondary="Acid content"
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemText
-                    primary={`${profile.dilution.toFixed(2)}%`}
-                    secondary="Dilution"
-                  />
-                </ListItem>
-              </List>
-            </Box>
+            <ProfileGraph profile={profile} technique={cocktail.technique} />
+            <CocktailProfileList
+              technique={cocktail.technique}
+              profile={profile}
+            />
           </Stack>
         )
       },
