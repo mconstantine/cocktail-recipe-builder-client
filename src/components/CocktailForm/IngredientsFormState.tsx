@@ -1,9 +1,9 @@
 import { pipe } from 'fp-ts/function'
 import { sequenceS } from 'fp-ts/Apply'
-import { Option, Some } from 'fp-ts/Option'
+import { Option } from 'fp-ts/Option'
 import { Reader } from 'fp-ts/Reader'
 import { Unit } from '../../globalDomain'
-import { boolean, option } from 'fp-ts'
+import { option } from 'fp-ts'
 import { Ingredient } from '../../pages/Ingredient/domain'
 import { CocktailIngredient } from '../../pages/Cocktail/domain'
 
@@ -22,10 +22,10 @@ interface AddingState {
   unit: Option<Unit>
 }
 
-interface ValidState extends AddingState {
-  ingredient: Some<Ingredient>
-  amount: Some<number>
-  unit: Some<Unit>
+interface ValidState {
+  ingredient: Ingredient
+  amount: number
+  unit: Unit
 }
 
 function addingState(data: Omit<AddingState, 'type'>): AddingState {
@@ -35,20 +35,19 @@ function addingState(data: Omit<AddingState, 'type'>): AddingState {
   }
 }
 
-export function isStateValid(state: AddingState): state is ValidState {
+export function validateState(state: AddingState): Option<ValidState> {
   return pipe(
-    { i: state.ingredient, a: state.amount, u: state.unit },
+    { ingredient: state.ingredient, amount: state.amount, unit: state.unit },
     sequenceS(option.Apply),
-    option.isSome,
   )
 }
 
 export function stateToCocktailIngredient(
   state: ValidState,
 ): CocktailIngredient {
-  const ingredient = state.ingredient.value
-  const amount = state.amount.value
-  const unit = state.unit.value
+  const ingredient = state.ingredient
+  const amount = state.amount
+  const unit = state.unit
 
   return {
     id: ingredient.id,
@@ -174,8 +173,8 @@ export function reducer(state: State, action: Action): State {
         case 'SAVE':
           return pipe(
             state,
-            isStateValid,
-            boolean.fold<State>(() => state, emptyIngredient),
+            validateState,
+            option.fold(() => state, emptyIngredient),
           )
         case 'UPDATE_INGREDIENT':
           return addingState({

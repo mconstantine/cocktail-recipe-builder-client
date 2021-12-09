@@ -1,4 +1,4 @@
-import { Add, Delete } from '@mui/icons-material'
+import { Add, Delete, Save } from '@mui/icons-material'
 import {
   Autocomplete,
   Button,
@@ -13,7 +13,7 @@ import {
 } from '@mui/material'
 import { Box } from '@mui/system'
 import { option } from 'fp-ts'
-import { constNull, pipe, flow } from 'fp-ts/function'
+import { constNull, pipe, flow, constVoid } from 'fp-ts/function'
 import { Reader } from 'fp-ts/Reader'
 import { NonEmptyString } from 'io-ts-types'
 import { useReducer, useState } from 'react'
@@ -32,15 +32,14 @@ import {
   cancelAction,
   foldState,
   importAction,
-  isStateValid,
   reducer,
   saveAction,
   startAction,
-  State,
   stateToCocktailIngredient,
   updateAmountAction,
   updateIngredientAction,
   updateUnitAction,
+  validateState,
 } from './IngredientsFormState'
 
 interface Props {
@@ -70,13 +69,23 @@ export function IngredientsForm(props: Props) {
   const [ingredients] = useGet(getIngredients, ingredientsQuery)
   const [units] = useGet(getUnits)
 
-  const onAddIngredientClick = (ingredient: CocktailIngredient) => {
-    props.onChange([
-      ...props.ingredients.filter(
-        i => i.ingredient.id !== ingredient.ingredient.id,
-      ),
-      ingredient,
-    ])
+  const onAddIngredientClick = () => {
+    pipe(
+      state,
+      foldState({
+        READY: constVoid,
+        ADDING: flow(
+          validateState,
+          option.fold(constVoid, state =>
+            props.onChange([
+              ...props.ingredients.filter(i => i.id !== state.ingredient.id),
+              stateToCocktailIngredient(state),
+            ]),
+          ),
+        ),
+      }),
+    )
+
     dispatch(saveAction())
   }
 
@@ -125,7 +134,6 @@ export function IngredientsForm(props: Props) {
         foldState({
           READY: constNull,
           ADDING: ({ ingredient, amount, unit }) => (
-            // TODO: this could be an actual form
             <>
               <Autocomplete
                 options={pipe(
@@ -179,6 +187,21 @@ export function IngredientsForm(props: Props) {
                 }
                 disabled={props.disabled}
               />
+              <Stack direction="row" spacing={2}>
+                <Button
+                  variant="outlined"
+                  startIcon={<Save />}
+                  onClick={onAddIngredientClick}
+                >
+                  Save
+                </Button>
+                <Button
+                  color="inherit"
+                  onClick={() => dispatch(cancelAction())}
+                >
+                  Close
+                </Button>
+              </Stack>
             </>
           ),
         }),
@@ -197,53 +220,10 @@ export function IngredientsForm(props: Props) {
                 Add
               </Button>
             ),
-            ADDING: state => (
-              <Stack direction="row" spacing={2}>
-                <AddIngredientButton
-                  state={state}
-                  onClick={onAddIngredientClick}
-                  disabled={props.disabled}
-                />
-                <Button
-                  color="inherit"
-                  variant="text"
-                  onClick={() => dispatch(cancelAction())}
-                  disabled={props.disabled}
-                >
-                  Close
-                </Button>
-              </Stack>
-            ),
+            ADDING: constNull,
           }),
         )}
       </Box>
     </Stack>
-  )
-}
-
-interface AddIngredientButtonProps {
-  state: Extract<State, { type: 'ADDING' }>
-  onClick: Reader<CocktailIngredient, unknown>
-  disabled?: boolean
-}
-
-function AddIngredientButton(props: AddIngredientButtonProps) {
-  const addIngredient = () => {
-    if (!isStateValid(props.state)) {
-      return
-    }
-
-    props.onClick(stateToCocktailIngredient(props.state))
-  }
-
-  return (
-    <Button
-      variant="outlined"
-      startIcon={<Add />}
-      disabled={!isStateValid(props.state) || props.disabled}
-      onClick={addIngredient}
-    >
-      Add
-    </Button>
   )
 }
