@@ -22,6 +22,7 @@ import { IngredientsForm } from './IngredientsForm'
 import {
   emptyState,
   reducer,
+  stateFromCocktail,
   stateToCocktailInput,
   updateIngredients,
   updateName,
@@ -43,7 +44,15 @@ export function CocktailForm(props: Props) {
   const [status, submit] = props.command
   const [techniques] = useGet(getTechniques)
   const [units] = useGet(getUnits)
-  const [state, dispatch] = useReducer(reducer, emptyState())
+
+  const [state, dispatch] = useReducer(
+    reducer,
+    pipe(
+      props.cocktail,
+      option.map(stateFromCocktail),
+      option.getOrElse(emptyState),
+    ),
+  )
 
   const validState = validateState(state)
   const isStateValid = option.isSome(validState)

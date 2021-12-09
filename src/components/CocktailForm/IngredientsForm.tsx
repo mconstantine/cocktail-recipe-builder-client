@@ -84,12 +84,15 @@ export function IngredientsForm(props: Props) {
         READY: constVoid,
         ADDING: flow(
           validateState,
-          option.fold(constVoid, state =>
+          option.fold(constVoid, state => {
             props.onChange([
-              ...props.ingredients.filter(i => i.id !== state.ingredient.id),
+              ...props.ingredients.filter(
+                i => i.ingredient.id !== state.ingredient.id,
+              ),
               stateToCocktailIngredient(state),
-            ]),
-          ),
+            ])
+            dispatch(cancelAction())
+          }),
         ),
       }),
     )

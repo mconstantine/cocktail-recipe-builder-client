@@ -26,9 +26,9 @@ import {
   foldState,
   showingState,
   State,
-} from './state'
+} from '../../common/EntityState'
 import { Option } from 'fp-ts/Option'
-import { Ingredient as IngredientType } from './domain'
+import { Ingredient as IngredientCodec } from './domain'
 
 export function Ingredient() {
   const navigate = useNavigate()
@@ -36,7 +36,7 @@ export function Ingredient() {
   const id = parseInt(params.id!)
   const [state, setState] = useState<State>(showingState())
 
-  const [ingredient, setIngredient] = useState<Option<IngredientType>>(
+  const [ingredient, setIngredient] = useState<Option<IngredientCodec>>(
     option.none,
   )
 
@@ -45,9 +45,9 @@ export function Ingredient() {
     flow(option.some, setIngredient),
   )
 
-  const updateIngredientCommand = usePut(updateIngredient(id), inredient => {
+  const updateIngredientCommand = usePut(updateIngredient(id), ingredient => {
     setState(showingState())
-    setIngredient(option.some(inredient))
+    setIngredient(option.some(ingredient))
   })
 
   const [deleteStatus, deleteCommand] = useDelete(deleteIngredient(id), () =>

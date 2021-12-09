@@ -1,10 +1,29 @@
-import { Stack, Typography, List, ListItem, ListItemText } from '@mui/material'
+import { Delete, Edit } from '@mui/icons-material'
+import {
+  Stack,
+  Typography,
+  List,
+  ListItem,
+  ListItemText,
+  SpeedDial,
+  SpeedDialIcon,
+  SpeedDialAction,
+} from '@mui/material'
 import { Box } from '@mui/system'
-import { option } from 'fp-ts'
-import { pipe } from 'fp-ts/function'
-import { useMemo } from 'react'
-import { useParams } from 'react-router'
-import { useGet } from '../../api/useApi'
+import { boolean, option } from 'fp-ts'
+import { constVoid, flow, pipe } from 'fp-ts/function'
+import { Option } from 'fp-ts/Option'
+import { useEffect, useMemo, useState } from 'react'
+import { useNavigate, useParams } from 'react-router'
+import { foldCommand, useDelete, useLazyGet, usePut } from '../../api/useApi'
+import {
+  deletingState,
+  editingState,
+  foldState,
+  showingState,
+  State,
+} from '../../common/EntityState'
+import { CocktailForm } from '../../components/CocktailForm/CocktailForm'
 import { CocktailProfileList } from '../../components/CocktailProfileList'
 import { ErrorAlert } from '../../components/ErrorAlert'
 import { Loading } from '../../components/Loading'
@@ -13,19 +32,45 @@ import {
   Breadcrumb,
   useSetBreadcrumbs,
 } from '../../contexts/BreadcrumbsContext'
-import { getIngredientRanges, query } from '../../globalDomain'
+import { getIngredientRanges } from '../../globalDomain'
+import { useConfirmationDialog } from '../../hooks/useConfirmationDialog'
 import { getCocktailProfile } from '../../utils/getCocktailProfile'
-import { getCocktail } from './api'
+import { deleteCocktail, getCocktail, updateCocktail } from './api'
+import { Cocktail as CocktailCodec } from './domain'
 
 export function Cocktail() {
+  const navigate = useNavigate()
   const params = useParams()
-  const [cocktail, reload] = pipe(params.id!, parseInt, getCocktail, useGet)
+  const id = parseInt(params.id!)
+  const [state, setState] = useState<State>(showingState())
+
+  const [cocktail, setCocktail] = useState<Option<CocktailCodec>>(option.none)
+
+  const [, fetchCocktail] = useLazyGet(
+    getCocktail(id),
+    flow(option.some, setCocktail),
+  )
+
+  const [deleteStatus, deleteCommand] = useDelete(deleteCocktail(id), () =>
+    navigate('/cocktails'),
+  )
+
+  const updateCocktailCommand = usePut(updateCocktail(id), cocktail => {
+    setState(showingState())
+    setCocktail(option.some(cocktail))
+  })
+
+  const [deleteDialog, openDeleteDialog] = useConfirmationDialog(
+    'Are you sure?',
+    'This will delete the ingredient and all the cocktails made with it.',
+    deleteCommand,
+  )
 
   const breadcrumbs = useMemo(
     () =>
       pipe(
         cocktail,
-        query.map(({ name }) => [
+        option.map(({ name }) => [
           {
             label: 'Cocktails',
             path: option.some('/cocktails'),
@@ -35,50 +80,120 @@ export function Cocktail() {
             path: option.none,
           },
         ]),
-        query.getOrElse(() => [] as Breadcrumb[]),
+        option.getOrElse(() => [] as Breadcrumb[]),
       ),
     [cocktail],
   )
 
   useSetBreadcrumbs(breadcrumbs)
 
+  useEffect(() => {
+    fetchCocktail()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    pipe(
+      deleteStatus,
+      foldCommand(
+        () => setState(deletingState(false)),
+        () => setState(deletingState(true)),
+        constVoid,
+      ),
+    )
+  }, [deleteStatus, navigate])
+
   return pipe(
     cocktail,
-    query.fold(
+    option.fold(
       () => <Loading />,
-      () => (
-        <ErrorAlert
-          message="An error occurred while getting the details of this cocktail."
-          onRetry={reload}
-        />
-      ),
-      cocktail => {
-        const profile = getCocktailProfile(cocktail)
+      cocktail =>
+        pipe(
+          state,
+          foldState({
+            Error: () => (
+              <ErrorAlert
+                message="Something went wrong while getting the details for this cocktail."
+                onRetry={fetchCocktail}
+              />
+            ),
+            Showing: () => {
+              const profile = getCocktailProfile(cocktail)
 
-        return (
-          <Stack spacing={4}>
-            <Typography variant="h1">{cocktail.name}</Typography>
-            <Box>
-              <Typography variant="h6">Ingredients</Typography>
-              <List>
-                {cocktail.ingredients.map(ingredient => (
-                  <ListItem key={ingredient.id}>
-                    <ListItemText
-                      primary={`${ingredient.amount} ${ingredient.unit.unit} ${ingredient.ingredient.name}`}
-                      secondary={getIngredientRanges(ingredient.ingredient)}
+              return (
+                <Stack spacing={4}>
+                  <Typography variant="h1">{cocktail.name}</Typography>
+                  <Box>
+                    <Typography variant="h6">Ingredients</Typography>
+                    <List>
+                      {cocktail.ingredients.map(ingredient => (
+                        <ListItem key={ingredient.id}>
+                          <ListItemText
+                            primary={`${ingredient.amount} ${ingredient.unit.unit} ${ingredient.ingredient.name}`}
+                            secondary={getIngredientRanges(
+                              ingredient.ingredient,
+                            )}
+                          />
+                        </ListItem>
+                      ))}
+                    </List>
+                  </Box>
+                  <ProfileGraph
+                    profile={profile}
+                    technique={cocktail.technique}
+                  />
+                  <CocktailProfileList
+                    technique={cocktail.technique}
+                    profile={profile}
+                  />
+                  <SpeedDial
+                    ariaLabel="actions"
+                    icon={<SpeedDialIcon />}
+                    sx={{ position: 'fixed', right: 16, bottom: 16 }}
+                  >
+                    <SpeedDialAction
+                      icon={<Edit />}
+                      tooltipTitle="Edit"
+                      onClick={() => setState(editingState())}
                     />
-                  </ListItem>
-                ))}
-              </List>
-            </Box>
-            <ProfileGraph profile={profile} technique={cocktail.technique} />
-            <CocktailProfileList
-              technique={cocktail.technique}
-              profile={profile}
-            />
-          </Stack>
-        )
-      },
+                    <SpeedDialAction
+                      icon={<Delete />}
+                      tooltipTitle="Delete"
+                      onClick={openDeleteDialog}
+                    />
+                  </SpeedDial>
+                  {deleteDialog}
+                </Stack>
+              )
+            },
+            Editing: () => (
+              <CocktailForm
+                cocktail={option.some(cocktail)}
+                command={updateCocktailCommand}
+                onCancel={() => setState(showingState())}
+                submitLabel="Update"
+              />
+            ),
+            Deleting: ({ error }) =>
+              pipe(
+                error,
+                boolean.fold(
+                  () => (
+                    <Loading>
+                      <Typography>Deleting "{cocktail.name}"…</Typography>
+                    </Loading>
+                  ),
+                  () => (
+                    <ErrorAlert
+                      message="An error occurred while deleting the cocktail."
+                      onRetry={() => setState(showingState())}
+                      retryLabel="Back"
+                    />
+                  ),
+                ),
+              ),
+          }),
+        ),
     ),
   )
 }
