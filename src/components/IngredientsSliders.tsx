@@ -1,7 +1,16 @@
-import { Grid, Input, Slider, Stack, Typography } from '@mui/material'
+import { ArrowUpward } from '@mui/icons-material'
+import {
+  Grid,
+  IconButton,
+  Input,
+  Slider,
+  Stack,
+  Typography,
+} from '@mui/material'
 import { Box } from '@mui/system'
 import { boolean } from 'fp-ts'
 import { constVoid, pipe } from 'fp-ts/function'
+import { IO } from 'fp-ts/IO'
 import { Reader } from 'fp-ts/Reader'
 import { CocktailIngredient, IngredientUnit } from '../globalDomain'
 
@@ -24,6 +33,15 @@ export function IngredientsSliders(props: Props) {
     )
   }
 
+  const onMoveIngredientUp = (ingredient: CocktailIngredient) => {
+    props.onChange([
+      ingredient,
+      ...props.ingredients.filter(
+        i => i.ingredient.id !== ingredient.ingredient.id,
+      ),
+    ])
+  }
+
   return (
     <Stack spacing={2}>
       {props.ingredients.map(ingredient => (
@@ -31,6 +49,7 @@ export function IngredientsSliders(props: Props) {
           key={ingredient.ingredient.id}
           ingredient={ingredient}
           onChange={onIngredientAmountChange}
+          onMoveUp={() => onMoveIngredientUp(ingredient)}
         />
       ))}
     </Stack>
@@ -40,6 +59,7 @@ export function IngredientsSliders(props: Props) {
 interface IngredientSliderProps {
   ingredient: CocktailIngredient
   onChange: Reader<CocktailIngredient, unknown>
+  onMoveUp: IO<unknown>
 }
 
 function IngredientSlider(props: IngredientSliderProps) {
@@ -95,6 +115,11 @@ function IngredientSlider(props: IngredientSliderProps) {
             }}
             sx={{ maxWidth: '3em' }}
           />
+        </Grid>
+        <Grid item>
+          <IconButton onClick={() => props.onMoveUp()}>
+            <ArrowUpward />
+          </IconButton>
         </Grid>
       </Grid>
     </Box>
