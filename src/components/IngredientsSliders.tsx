@@ -88,10 +88,14 @@ interface IngredientSliderProps {
 
 function IngredientSlider(props: IngredientSliderProps) {
   const min = 0
-  const max = getMaximum(props.ingredient.unit)
+  const [max, setMax] = useState(getMaximum(props.ingredient.unit))
   const step = getStep(props.ingredient.unit)
 
   const onChange = (value: number) => {
+    if (value > max) {
+      setMax(value)
+    }
+
     if (value !== props.ingredient.amount) {
       props.onChange({
         ...props.ingredient,
@@ -129,7 +133,6 @@ function IngredientSlider(props: IngredientSliderProps) {
                 ),
               )
             }
-            // onBlur={handleBlur}
             inputProps={{
               min,
               max,
@@ -172,9 +175,9 @@ function getStep(unit: IngredientUnit): number {
     case 'oz':
       return 0.25
     case 'ml':
-      return 1
+      return 0.05
     case 'cl':
-      return 1
+      return 0.05
     case 'dash':
       return 1
     case 'drop':
