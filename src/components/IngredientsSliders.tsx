@@ -1,5 +1,6 @@
-import { ArrowUpward } from '@mui/icons-material'
+import { ArrowUpward, CancelPresentation, Tune } from '@mui/icons-material'
 import {
+  Button,
   Grid,
   IconButton,
   Input,
@@ -12,6 +13,7 @@ import { boolean } from 'fp-ts'
 import { constVoid, pipe } from 'fp-ts/function'
 import { IO } from 'fp-ts/IO'
 import { Reader } from 'fp-ts/Reader'
+import { useState } from 'react'
 import { CocktailIngredient, IngredientUnit } from '../globalDomain'
 
 interface Props {
@@ -21,6 +23,8 @@ interface Props {
 }
 
 export function IngredientsSliders(props: Props) {
+  const [isExpanded, setIsExpanded] = useState(false)
+
   const onIngredientAmountChange = (ingredient: CocktailIngredient) => {
     props.onChange(
       props.ingredients.map(i => {
@@ -42,17 +46,37 @@ export function IngredientsSliders(props: Props) {
     ])
   }
 
-  return (
-    <Stack spacing={2}>
-      {props.ingredients.map(ingredient => (
-        <IngredientSlider
-          key={ingredient.ingredient.id}
-          ingredient={ingredient}
-          onChange={onIngredientAmountChange}
-          onMoveUp={() => onMoveIngredientUp(ingredient)}
-        />
-      ))}
-    </Stack>
+  return pipe(
+    isExpanded,
+    boolean.fold(
+      () => (
+        <Box>
+          <Button startIcon={<Tune />} onClick={() => setIsExpanded(true)}>
+            Tune ingredients
+          </Button>
+        </Box>
+      ),
+      () => (
+        <Stack spacing={2}>
+          {props.ingredients.map(ingredient => (
+            <IngredientSlider
+              key={ingredient.ingredient.id}
+              ingredient={ingredient}
+              onChange={onIngredientAmountChange}
+              onMoveUp={() => onMoveIngredientUp(ingredient)}
+            />
+          ))}
+          <Box>
+            <Button
+              startIcon={<CancelPresentation />}
+              onClick={() => setIsExpanded(false)}
+            >
+              Close sliders
+            </Button>
+          </Box>
+        </Stack>
+      ),
+    ),
   )
 }
 
