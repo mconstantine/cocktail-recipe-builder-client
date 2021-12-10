@@ -6,7 +6,7 @@ import { taskEither } from 'fp-ts'
 import { pipe, flow } from 'fp-ts/function'
 import { reportErrors } from './reportErrors'
 import { useEffect, useState } from 'react'
-import { query } from '../globalDomain'
+import { query } from './api'
 import { Query } from './Query'
 
 const API_URL = process.env['REACT_APP_API_URL']?.replace(/\/?$/, '')

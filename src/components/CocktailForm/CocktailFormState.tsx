@@ -4,8 +4,7 @@ import { sequenceS } from 'fp-ts/Apply'
 import { NonEmptyArray } from 'fp-ts/NonEmptyArray'
 import { Option } from 'fp-ts/Option'
 import { NonEmptyString } from 'io-ts-types'
-import { Technique } from '../../globalDomain'
-import { Cocktail, CocktailIngredient } from '../../pages/Cocktail/domain'
+import { Cocktail, CocktailIngredient, Technique } from '../../globalDomain'
 import { CocktailInput } from '../../pages/CreateCocktail/domain'
 
 export interface State {

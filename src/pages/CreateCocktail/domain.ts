@@ -1,11 +1,11 @@
 import * as t from 'io-ts'
-import { TechniqueCode } from '../../globalDomain'
+import { IngredientUnitName, TechniqueCode } from '../../globalDomain'
 
 export const CocktailIngredientInput = t.type(
   {
     id: t.number,
     amount: t.number,
-    unit: t.string,
+    unit: IngredientUnitName,
   },
   'CocktailIngredientInput',
 )

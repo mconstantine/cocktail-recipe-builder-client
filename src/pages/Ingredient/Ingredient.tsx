@@ -28,7 +28,7 @@ import {
   State,
 } from '../../common/EntityState'
 import { Option } from 'fp-ts/Option'
-import { Ingredient as IngredientCodec } from './domain'
+import { Ingredient as IngredientCodec } from '../../globalDomain'
 
 export function Ingredient() {
   const navigate = useNavigate()

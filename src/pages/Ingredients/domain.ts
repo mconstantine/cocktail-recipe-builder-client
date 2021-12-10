@@ -1,7 +1,7 @@
 import * as t from 'io-ts'
 import { optionFromNullable } from 'io-ts-types'
 import { PaginationInput, PaginationOutput } from '../../api/apiDomain'
-import { Ingredient } from '../Ingredient/domain'
+import { Ingredient } from '../../globalDomain'
 
 export const IngredientsInput = t.intersection(
   [

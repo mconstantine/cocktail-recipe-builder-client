@@ -2,10 +2,12 @@ import { pipe } from 'fp-ts/function'
 import { sequenceS } from 'fp-ts/Apply'
 import { Option } from 'fp-ts/Option'
 import { Reader } from 'fp-ts/Reader'
-import { Unit } from '../../globalDomain'
+import {
+  CocktailIngredient,
+  Ingredient,
+  IngredientUnit,
+} from '../../globalDomain'
 import { option } from 'fp-ts'
-import { Ingredient } from '../../pages/Ingredient/domain'
-import { CocktailIngredient } from '../../pages/Cocktail/domain'
 
 interface ReadyState {
   type: 'READY'
@@ -19,13 +21,13 @@ interface AddingState {
   type: 'ADDING'
   ingredient: Option<Ingredient>
   amount: Option<number>
-  unit: Option<Unit>
+  unit: Option<IngredientUnit>
 }
 
 interface ValidState {
   ingredient: Ingredient
   amount: number
-  unit: Unit
+  unit: IngredientUnit
 }
 
 function addingState(data: Omit<AddingState, 'type'>): AddingState {
@@ -50,7 +52,6 @@ export function stateToCocktailIngredient(
   const unit = state.unit
 
   return {
-    id: ingredient.id,
     ingredient,
     amount,
     unit,
@@ -120,10 +121,10 @@ export function updateAmountAction(amount: number): UpdateAmountAction {
 
 interface UpdateUnitAction {
   type: 'UPDATE_UNIT'
-  unit: Unit
+  unit: IngredientUnit
 }
 
-export function updateUnitAction(unit: Unit): UpdateUnitAction {
+export function updateUnitAction(unit: IngredientUnit): UpdateUnitAction {
   return { type: 'UPDATE_UNIT', unit }
 }
 

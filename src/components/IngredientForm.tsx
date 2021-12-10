@@ -4,12 +4,12 @@ import { constFalse, constNull, constTrue, pipe } from 'fp-ts/function'
 import { Option } from 'fp-ts/Option'
 import { useState } from 'react'
 import { IngredientInput } from '../pages/CreateIngredient/domain'
-import { Ingredient } from '../pages/Ingredient/domain'
 import { Form } from './Form'
 import { PercentageField } from './PercentageField'
 import { CommandHookOutput, foldCommand } from '../api/useApi'
 import { ErrorAlert } from './ErrorAlert'
 import { IO } from 'fp-ts/IO'
+import { Ingredient } from '../globalDomain'
 
 interface Props {
   ingredient: Option<Ingredient>

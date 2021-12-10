@@ -1,18 +1,30 @@
 import * as t from 'io-ts'
-import { Ingredient } from './pages/Ingredient/domain'
+import { DateFromISOString } from 'io-ts-types'
 
-const UnitCommon = t.type(
+const UnitCommonData = t.type(
   {
     id: t.Int,
     name: t.string,
-    unit: t.string,
   },
-  'UnitCommon',
+  'UnitCommonData',
 )
+
+export const IngredientUnitName = t.keyof(
+  {
+    oz: true,
+    ml: true,
+    cl: true,
+    dash: true,
+    drop: true,
+    tsp: true,
+  },
+  'IngredientUnitName',
+)
+export type IngredientUnitName = t.TypeOf<typeof IngredientUnitName>
 
 const PercentageUnit = t.intersection(
   [
-    UnitCommon,
+    UnitCommonData,
     t.type({
       type: t.literal('PERCENTAGE'),
       ml: t.null,
@@ -23,7 +35,7 @@ const PercentageUnit = t.intersection(
 
 const VolumeUnit = t.intersection(
   [
-    UnitCommon,
+    UnitCommonData,
     t.type({
       type: t.literal('VOLUME'),
       ml: t.number,
@@ -32,14 +44,32 @@ const VolumeUnit = t.intersection(
   'VolumeUnit',
 )
 
-export const Unit = t.union([PercentageUnit, VolumeUnit], 'Unit')
-export type Unit = t.TypeOf<typeof Unit>
+export const IngredientUnit = t.intersection(
+  [
+    VolumeUnit,
+    t.type({
+      unit: IngredientUnitName,
+    }),
+  ],
+  'IngredientUnit',
+)
+export type IngredientUnit = t.TypeOf<typeof IngredientUnit>
+
+export const RangeUnit = t.intersection(
+  [
+    PercentageUnit,
+    t.type({
+      unit: t.literal('%'),
+    }),
+  ],
+  'RangeUnit',
+)
 
 const MinMaxRange = t.type(
   {
     min: t.number,
     max: t.number,
-    unit: Unit,
+    unit: t.union([IngredientUnit, RangeUnit]),
   },
   'MinMaxRange',
 )
@@ -68,6 +98,48 @@ export const Technique = t.type(
 )
 export type Technique = t.TypeOf<typeof Technique>
 
+export const Range = t.type(
+  {
+    id: t.Int,
+    amount: t.number,
+    unit: RangeUnit,
+  },
+  'Range',
+)
+
+export const Ingredient = t.type(
+  {
+    id: t.Int,
+    name: t.string,
+    ranges: t.array(Range, 'Ranges'),
+  },
+  'Ingredient',
+)
+export type Ingredient = t.TypeOf<typeof Ingredient>
+
+export const CocktailIngredient = t.type(
+  {
+    amount: t.number,
+    unit: IngredientUnit,
+    ingredient: Ingredient,
+  },
+  'CocktailIngredient',
+)
+export type CocktailIngredient = t.TypeOf<typeof CocktailIngredient>
+
+export const Cocktail = t.type(
+  {
+    id: t.Int,
+    name: t.string,
+    created_at: DateFromISOString,
+    updated_at: DateFromISOString,
+    technique: Technique,
+    ingredients: t.array(CocktailIngredient, 'Ingredients'),
+  },
+  'Cocktail',
+)
+export type Cocktail = t.TypeOf<typeof Cocktail>
+
 export interface CocktailProfile {
   volumeMl: number
   volumeOz: number
@@ -75,12 +147,4 @@ export interface CocktailProfile {
   acidContentPct: number
   abv: number
   dilution: number
-}
-
-export * as query from './api/Query'
-
-export function getIngredientRanges(ingredient: Ingredient): string {
-  return ingredient.ranges
-    .map(range => `${range.amount}${range.unit.unit} ${range.unit.name}`)
-    .join(', ')
 }

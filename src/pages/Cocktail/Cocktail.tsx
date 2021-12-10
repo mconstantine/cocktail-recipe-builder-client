@@ -32,11 +32,11 @@ import {
   Breadcrumb,
   useSetBreadcrumbs,
 } from '../../contexts/BreadcrumbsContext'
-import { getIngredientRanges } from '../../globalDomain'
+import { Cocktail as CocktailCodec } from '../../globalDomain'
 import { useConfirmationDialog } from '../../hooks/useConfirmationDialog'
 import { getCocktailProfile } from '../../utils/getCocktailProfile'
+import { ingredientRangesToString } from '../../utils/ingredientRangesToString'
 import { deleteCocktail, getCocktail, updateCocktail } from './api'
-import { Cocktail as CocktailCodec } from './domain'
 
 export function Cocktail() {
   const navigate = useNavigate()
@@ -127,10 +127,10 @@ export function Cocktail() {
                     <Typography variant="h6">Ingredients</Typography>
                     <List>
                       {cocktail.ingredients.map(ingredient => (
-                        <ListItem key={ingredient.id}>
+                        <ListItem key={ingredient.ingredient.id}>
                           <ListItemText
                             primary={`${ingredient.amount} ${ingredient.unit.unit} ${ingredient.ingredient.name}`}
-                            secondary={getIngredientRanges(
+                            secondary={ingredientRangesToString(
                               ingredient.ingredient,
                             )}
                           />

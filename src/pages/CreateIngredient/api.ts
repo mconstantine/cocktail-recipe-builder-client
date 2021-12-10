@@ -1,5 +1,5 @@
 import { makePostRequest } from '../../api/useApi'
-import { Ingredient } from '../Ingredient/domain'
+import { Ingredient } from '../../globalDomain'
 import { IngredientInput } from './domain'
 
 export const createIngredient = makePostRequest({

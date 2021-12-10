@@ -4,8 +4,8 @@ import {
   makeGetRequest,
   makePutRequest,
 } from '../../api/useApi'
+import { Ingredient } from '../../globalDomain'
 import { IngredientInput } from '../CreateIngredient/domain'
-import { Ingredient } from './domain'
 
 export const getIngredient = (id: number) =>
   makeGetRequest({

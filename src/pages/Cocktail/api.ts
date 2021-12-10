@@ -4,8 +4,8 @@ import {
   makeGetRequest,
   makePutRequest,
 } from '../../api/useApi'
+import { Cocktail } from '../../globalDomain'
 import { CocktailInput } from '../CreateCocktail/domain'
-import { Cocktail } from './domain'
 
 export const getCocktail = (id: number) =>
   makeGetRequest({

@@ -17,16 +17,17 @@ import { constNull, pipe, flow, constVoid, constFalse } from 'fp-ts/function'
 import { Reader } from 'fp-ts/Reader'
 import { NonEmptyString } from 'io-ts-types'
 import { useReducer, useState } from 'react'
+import { query } from '../../api/api'
 import { useGet } from '../../api/useApi'
-import { getIngredientRanges, query, Unit } from '../../globalDomain'
+import { CocktailIngredient, IngredientUnit } from '../../globalDomain'
 import { useDebounce } from '../../hooks/useDebounce'
-import { CocktailIngredient } from '../../pages/Cocktail/domain'
 import { getUnits } from '../../pages/CreateCocktail/api'
 import { getIngredients } from '../../pages/Ingredients/api'
 import {
   IngredientsInput,
   IngredientsOutput,
 } from '../../pages/Ingredients/domain'
+import { ingredientRangesToString } from '../../utils/ingredientRangesToString'
 import { NumberField } from '../NumberField'
 import {
   cancelAction,
@@ -115,7 +116,7 @@ export function IngredientsForm(props: Props) {
         <List>
           {props.ingredients.map(ingredient => (
             <ListItem
-              key={ingredient.id}
+              key={ingredient.ingredient.id}
               secondaryAction={
                 <IconButton
                   edge="end"
@@ -133,7 +134,7 @@ export function IngredientsForm(props: Props) {
               >
                 <ListItemText
                   primary={`${ingredient.amount}${ingredient.unit.unit} ${ingredient.ingredient.name}`}
-                  secondary={getIngredientRanges(ingredient.ingredient)}
+                  secondary={ingredientRangesToString(ingredient.ingredient)}
                 />
               </ListItemButton>
             </ListItem>
@@ -167,7 +168,7 @@ export function IngredientsForm(props: Props) {
                   <ListItem {...props}>
                     <ListItemText
                       primary={`${option.name}`}
-                      secondary={getIngredientRanges(option)}
+                      secondary={ingredientRangesToString(option)}
                     />
                   </ListItem>
                 )}
@@ -185,7 +186,7 @@ export function IngredientsForm(props: Props) {
               <Autocomplete
                 options={pipe(
                   units,
-                  query.getOrElse(() => [] as Unit[]),
+                  query.getOrElse(() => [] as IngredientUnit[]),
                 )}
                 getOptionLabel={({ unit }) => unit}
                 renderInput={params => (

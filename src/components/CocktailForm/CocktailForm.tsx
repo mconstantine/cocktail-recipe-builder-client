@@ -10,14 +10,14 @@ import {
 import { Option } from 'fp-ts/Option'
 import { useReducer } from 'react'
 import { CommandHookOutput, foldCommand, useGet } from '../../api/useApi'
-import { Cocktail, CocktailIngredient } from '../../pages/Cocktail/domain'
+import { Cocktail, CocktailIngredient, Technique } from '../../globalDomain'
 import { Form } from '../Form'
 import { option } from 'fp-ts'
 import { CocktailInput } from '../../pages/CreateCocktail/domain'
 import { Autocomplete, Divider, TextField } from '@mui/material'
 import { getTechniques, getUnits } from '../../pages/CreateCocktail/api'
 import { sequenceS } from 'fp-ts/Apply'
-import { query, Technique } from '../../globalDomain'
+import { query } from '../../api/api'
 import { IngredientsForm } from './IngredientsForm'
 import {
   emptyState,
@@ -32,6 +32,7 @@ import {
 import { getCocktailProfile } from '../../utils/getCocktailProfile'
 import { CocktailProfileList } from '../CocktailProfileList'
 import { ProfileGraph } from '../ProfileGraph/ProfileGraph'
+import { IngredientsSliders } from '../IngredientsSliders'
 
 interface Props {
   cocktail: Option<Cocktail>
@@ -115,6 +116,11 @@ export function CocktailForm(props: Props) {
           option.fold(constNull, ({ profile, technique }) => (
             <>
               <ProfileGraph profile={profile} technique={technique} />
+              <IngredientsSliders
+                ingredients={state.ingredients}
+                onChange={onIngredientsChange}
+                disabled={isFormDisabled}
+              />
               <CocktailProfileList profile={profile} technique={technique} />
             </>
           )),

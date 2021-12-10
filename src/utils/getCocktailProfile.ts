@@ -1,5 +1,4 @@
-import { CocktailProfile } from '../globalDomain'
-import { Cocktail } from '../pages/Cocktail/domain'
+import { Cocktail, CocktailProfile } from '../globalDomain'
 import { computeDilution } from './computeDilution'
 
 function getContentPct(
@@ -36,13 +35,11 @@ export function getCocktailProfile(
       0,
     )
 
-  const initialAdditionalVolumeMl = cocktail.ingredients
-    .filter(({ unit: { type } }) => type === 'PERCENTAGE')
-    .reduce(
-      (res, ingredient) =>
-        res + (initialIngredientsVolumeMl / 100) * ingredient.amount,
-      0,
-    )
+  const initialAdditionalVolumeMl = cocktail.ingredients.reduce(
+    (res, ingredient) =>
+      res + (initialIngredientsVolumeMl / 100) * ingredient.amount,
+    0,
+  )
 
   const initialVolumeMl = initialIngredientsVolumeMl + initialAdditionalVolumeMl
   const abv = getContentPct(cocktail, initialVolumeMl, 'ABV')
