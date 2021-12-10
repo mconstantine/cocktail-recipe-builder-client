@@ -1,5 +1,6 @@
 import { Stack, Typography } from '@mui/material'
 import { styled } from '@mui/system'
+import { useMemo } from 'react'
 import { CocktailProfile, Technique } from '../../globalDomain'
 import './ProfileGraph.css'
 
@@ -84,21 +85,37 @@ function Column(props: ColumnProps) {
   const highestOffset = 100 - max
   const value = (props.value / base) * 100
 
-  const Base = styled('div')(({ theme }) => ({
-    backgroundColor: theme.palette.mode === 'dark' ? '#c62828' : '#e57373',
-  }))
+  const Base = useMemo(
+    () =>
+      styled('div')(({ theme }) => ({
+        backgroundColor: theme.palette.mode === 'dark' ? '#c62828' : '#e57373',
+      })),
+    [],
+  )
 
-  const Min = styled('div')(({ theme }) => ({
-    backgroundColor: theme.palette.mode === 'dark' ? '#424242' : '#e0e0e0',
-  }))
+  const Min = useMemo(
+    () =>
+      styled('div')(({ theme }) => ({
+        backgroundColor: theme.palette.mode === 'dark' ? '#424242' : '#e0e0e0',
+      })),
+    [],
+  )
 
-  const Max = styled('div')(({ theme }) => ({
-    backgroundColor: theme.palette.mode === 'dark' ? '#2e7d32' : '#00e676',
-  }))
+  const Max = useMemo(
+    () =>
+      styled('div')(({ theme }) => ({
+        backgroundColor: theme.palette.mode === 'dark' ? '#2e7d32' : '#00e676',
+      })),
+    [],
+  )
 
-  const Value = styled('div')(({ theme }) => ({
-    backgroundColor: theme.palette.mode === 'dark' ? '#fff' : '#000',
-  }))
+  const Value = useMemo(
+    () =>
+      styled('div')(({ theme }) => ({
+        backgroundColor: theme.palette.mode === 'dark' ? '#fff' : '#000',
+      })),
+    [],
+  )
 
   return (
     <div className="column">
