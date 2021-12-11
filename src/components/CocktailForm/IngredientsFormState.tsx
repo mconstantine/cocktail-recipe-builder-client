@@ -22,6 +22,7 @@ interface AddingState {
   ingredient: Option<Ingredient>
   amount: Option<number>
   unit: Option<IngredientUnit>
+  after_technique: boolean
 }
 
 function addingState(data: Omit<AddingState, 'type'>): AddingState {
@@ -37,6 +38,7 @@ interface EditingState {
   ingredient: Option<Ingredient>
   amount: Option<number>
   unit: Option<IngredientUnit>
+  after_technique: boolean
 }
 
 function editingState(data: Omit<EditingState, 'type'>): EditingState {
@@ -50,6 +52,7 @@ interface ValidAddingState {
   ingredient: Ingredient
   amount: number
   unit: IngredientUnit
+  after_technique: boolean
 }
 
 interface ValidEditingState extends ValidAddingState {
@@ -66,10 +69,14 @@ export function validateState(
     sequenceS(option.Apply),
     option.map(validState =>
       state.type === 'ADDING'
-        ? validState
+        ? {
+            ...validState,
+            after_technique: state.after_technique,
+          }
         : {
             ...validState,
             originalIngredientIndex: state.originalIngredientIndex,
+            after_technique: state.after_technique,
           },
     ),
   )
@@ -81,11 +88,13 @@ export function stateToCocktailIngredient(
   const ingredient = state.ingredient
   const amount = state.amount
   const unit = state.unit
+  const after_technique = state.after_technique
 
   return {
     ingredient,
     amount,
     unit,
+    after_technique,
   }
 }
 
@@ -94,6 +103,7 @@ function emptyIngredient(): Omit<AddingState, 'type'> {
     ingredient: option.none,
     amount: option.none,
     unit: option.none,
+    after_technique: false,
   }
 }
 
@@ -158,6 +168,17 @@ export function updateUnitAction(unit: IngredientUnit): UpdateUnitAction {
   return { type: 'UPDATE_UNIT', unit }
 }
 
+interface UpdateAfterTechniqueAction {
+  type: 'UPDATE_AFTER_TECHNIQUE'
+  after_technique: boolean
+}
+
+export function updateAfterTechniqueAction(
+  after_technique: boolean,
+): UpdateAfterTechniqueAction {
+  return { type: 'UPDATE_AFTER_TECHNIQUE', after_technique }
+}
+
 interface ImportAction {
   type: 'IMPORT'
   ingredient: CocktailIngredient
@@ -178,6 +199,7 @@ type Action =
   | UpdateIngredientAction
   | UpdateAmountAction
   | UpdateUnitAction
+  | UpdateAfterTechniqueAction
   | ImportAction
 
 export function reducer(state: State, action: Action): State {
@@ -192,12 +214,14 @@ export function reducer(state: State, action: Action): State {
             ingredient: option.some(action.ingredient.ingredient),
             amount: option.some(action.ingredient.amount),
             unit: option.some(action.ingredient.unit),
+            after_technique: action.ingredient.after_technique,
           })
         case 'CLOSE':
         case 'SAVE':
         case 'UPDATE_INGREDIENT':
         case 'UPDATE_AMOUNT':
         case 'UPDATE_UNIT':
+        case 'UPDATE_AFTER_TECHNIQUE':
           return state
       }
     case 'ADDING':
@@ -229,12 +253,18 @@ export function reducer(state: State, action: Action): State {
             ...state,
             unit: option.some(action.unit),
           })
+        case 'UPDATE_AFTER_TECHNIQUE':
+          return addingState({
+            ...state,
+            after_technique: action.after_technique,
+          })
         case 'IMPORT':
           return editingState({
             originalIngredientIndex: action.originalIngredientIndex,
             ingredient: option.some(action.ingredient.ingredient),
             amount: option.some(action.ingredient.amount),
             unit: option.some(action.ingredient.unit),
+            after_technique: action.ingredient.after_technique,
           })
       }
     case 'EDITING':
@@ -267,12 +297,18 @@ export function reducer(state: State, action: Action): State {
             ...state,
             unit: option.some(action.unit),
           })
+        case 'UPDATE_AFTER_TECHNIQUE':
+          return editingState({
+            ...state,
+            after_technique: action.after_technique,
+          })
         case 'IMPORT':
           return editingState({
             originalIngredientIndex: action.originalIngredientIndex,
             ingredient: option.some(action.ingredient.ingredient),
             amount: option.some(action.ingredient.amount),
             unit: option.some(action.ingredient.unit),
+            after_technique: action.ingredient.after_technique,
           })
       }
   }

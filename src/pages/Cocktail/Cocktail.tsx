@@ -1,4 +1,4 @@
-import { Delete, Edit } from '@mui/icons-material'
+import { Delete, Edit, LocalDrink } from '@mui/icons-material'
 import {
   Stack,
   Typography,
@@ -8,6 +8,7 @@ import {
   SpeedDial,
   SpeedDialIcon,
   SpeedDialAction,
+  ListItemIcon,
 } from '@mui/material'
 import { Box } from '@mui/system'
 import { boolean, option } from 'fp-ts'
@@ -126,16 +127,33 @@ export function Cocktail() {
                   <Box>
                     <Typography variant="h6">Ingredients</Typography>
                     <List>
-                      {cocktail.ingredients.map(ingredient => (
-                        <ListItem key={ingredient.ingredient.id}>
-                          <ListItemText
-                            primary={`${ingredient.amount} ${ingredient.unit.unit} ${ingredient.ingredient.name}`}
-                            secondary={ingredientRangesToString(
-                              ingredient.ingredient,
-                            )}
-                          />
-                        </ListItem>
-                      ))}
+                      {cocktail.ingredients
+                        .filter(({ after_technique }) => !after_technique)
+                        .map(ingredient => (
+                          <ListItem key={ingredient.ingredient.id}>
+                            <ListItemText
+                              primary={`${ingredient.amount} ${ingredient.unit.unit} ${ingredient.ingredient.name}`}
+                              secondary={ingredientRangesToString(
+                                ingredient.ingredient,
+                              )}
+                            />
+                          </ListItem>
+                        ))}
+                      {cocktail.ingredients
+                        .filter(({ after_technique }) => after_technique)
+                        .map(ingredient => (
+                          <ListItem key={ingredient.ingredient.id}>
+                            <ListItemIcon>
+                              <LocalDrink />
+                            </ListItemIcon>
+                            <ListItemText
+                              primary={`${ingredient.amount} ${ingredient.unit.unit} ${ingredient.ingredient.name}`}
+                              secondary={ingredientRangesToString(
+                                ingredient.ingredient,
+                              )}
+                            />
+                          </ListItem>
+                        ))}
                     </List>
                   </Box>
                   <ProfileGraph

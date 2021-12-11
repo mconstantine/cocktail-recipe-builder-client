@@ -54,6 +54,7 @@ export function stateToCocktailInput(state: ValidState): CocktailInput {
       id: ingredient.ingredient.id,
       amount: ingredient.amount,
       unit: ingredient.unit.unit,
+      after_technique: ingredient.after_technique,
     })),
   }
 }

@@ -6,6 +6,7 @@ export const CocktailIngredientInput = t.type(
     id: t.number,
     amount: t.number,
     unit: IngredientUnitName,
+    after_technique: t.boolean,
   },
   'CocktailIngredientInput',
 )

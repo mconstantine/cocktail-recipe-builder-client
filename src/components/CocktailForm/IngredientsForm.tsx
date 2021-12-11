@@ -2,12 +2,14 @@ import { Add, Delete, Save } from '@mui/icons-material'
 import {
   Autocomplete,
   Button,
+  FormControlLabel,
   IconButton,
   List,
   ListItem,
   ListItemButton,
   ListItemText,
   Stack,
+  Switch,
   TextField,
   Typography,
 } from '@mui/material'
@@ -42,6 +44,7 @@ import {
   updateUnitAction,
   validateState,
   State,
+  updateAfterTechniqueAction,
 } from './IngredientsFormState'
 
 interface Props {
@@ -130,6 +133,7 @@ export function IngredientsForm(props: Props) {
     ingredient,
     amount,
     unit,
+    after_technique,
   }: Omit<Extract<State, { type: 'ADDING' }>, 'type'>) => (
     <>
       <Autocomplete
@@ -179,6 +183,15 @@ export function IngredientsForm(props: Props) {
         loading={query.isLoading(units)}
         onChange={(_, value) => value && dispatch(updateUnitAction(value))}
         disabled={props.disabled}
+      />
+      <FormControlLabel
+        label="Add at the end"
+        control={
+          <Switch
+            checked={after_technique}
+            onChange={(_, value) => dispatch(updateAfterTechniqueAction(value))}
+          />
+        }
       />
       <Stack direction="row" spacing={2}>
         <Button

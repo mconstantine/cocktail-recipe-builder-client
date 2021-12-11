@@ -31,7 +31,7 @@ export function getCocktailProfile(
   const initialIngredientsVolumeMl = cocktail.ingredients
     .filter(({ unit: { type } }) => type === 'VOLUME')
     .reduce(
-      (res, ingredient) => res + ingredient.amount * ingredient.unit.ml!,
+      (res, ingredient) => res + ingredient.amount * ingredient.unit.ml,
       0,
     )
 

@@ -1,5 +1,5 @@
 import * as t from 'io-ts'
-import { DateFromISOString } from 'io-ts-types'
+import { BooleanFromNumber, DateFromISOString } from 'io-ts-types'
 
 const UnitCommonData = t.type(
   {
@@ -122,6 +122,7 @@ export const CocktailIngredient = t.type(
     amount: t.number,
     unit: IngredientUnit,
     ingredient: Ingredient,
+    after_technique: BooleanFromNumber,
   },
   'CocktailIngredient',
 )
