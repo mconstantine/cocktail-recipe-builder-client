@@ -1,55 +1,60 @@
-import { Cocktail, CocktailProfile } from '../globalDomain'
+import { Cocktail, CocktailIngredient, CocktailProfile } from '../globalDomain'
 import { computeDilution } from './computeDilution'
 
 function getContentPct(
-  cocktail: Pick<Cocktail, 'name' | 'technique' | 'ingredients'>,
+  ingredients: CocktailIngredient[],
   finalCocktailVolumeMl: number,
   targetUnitName: string,
 ): number {
-  const contentMl =
-    cocktail.ingredients.reduce((res, ingredient) => {
-      const targetRange = ingredient.ingredient.ranges.find(
-        ({ unit: { name } }) => name === targetUnitName,
-      )
+  const contentMl = ingredients.reduce((res, ingredient) => {
+    const targetRange = ingredient.ingredient.ranges.find(
+      ({ unit: { name } }) => name === targetUnitName,
+    )
 
-      if (!targetRange) {
-        return res
-      }
+    if (!targetRange) {
+      return res
+    }
 
-      const ingredientContentRatio = targetRange.amount / 100
-      const ingredientAmountMl = ingredient.amount * (ingredient.unit.ml || 0)
+    const ingredientContentRatio = targetRange.amount / 100
+    const ingredientAmountMl = ingredient.amount * ingredient.unit.ml
 
-      return res + ingredientContentRatio * ingredientAmountMl
-    }, 0) * 100
+    return res + ingredientContentRatio * ingredientAmountMl
+  }, 0)
 
-  return contentMl / finalCocktailVolumeMl
+  return (contentMl / finalCocktailVolumeMl) * 100
 }
 
 export function getCocktailProfile(
   cocktail: Pick<Cocktail, 'name' | 'technique' | 'ingredients'>,
 ): CocktailProfile {
-  const initialIngredientsVolumeMl = cocktail.ingredients
-    .filter(({ unit: { type } }) => type === 'VOLUME')
-    .reduce(
-      (res, ingredient) => res + ingredient.amount * ingredient.unit.ml,
-      0,
-    )
-
-  const initialAdditionalVolumeMl = cocktail.ingredients.reduce(
-    (res, ingredient) =>
-      res + (initialIngredientsVolumeMl / 100) * ingredient.amount,
+  const initialVolumeMl = cocktail.ingredients.reduce(
+    (res, ingredient) => res + ingredient.amount * ingredient.unit.ml,
     0,
   )
 
-  const initialVolumeMl = initialIngredientsVolumeMl + initialAdditionalVolumeMl
-  const abv = getContentPct(cocktail, initialVolumeMl, 'ABV')
+  const ingredientsBeforeTechnique = cocktail.ingredients.filter(
+    ({ after_technique }) => !after_technique,
+  )
+
+  const abvBeforeTechnique = getContentPct(
+    ingredientsBeforeTechnique,
+    initialVolumeMl,
+    'ABV',
+  )
+  const dilution = computeDilution(abvBeforeTechnique, cocktail.technique)
+  const dilutionAddendum = 1 + dilution / 100
+  const finalVolumeMl = initialVolumeMl * dilutionAddendum
 
   return {
-    volumeMl: initialVolumeMl,
-    volumeOz: initialVolumeMl / 30,
-    abv,
-    sugarContentPct: getContentPct(cocktail, initialVolumeMl, 'Sugar'),
-    acidContentPct: getContentPct(cocktail, initialVolumeMl, 'Acid'),
-    dilution: computeDilution(abv, cocktail.technique),
+    volumeMl: finalVolumeMl,
+    volumeOz: finalVolumeMl / 30,
+    abv: getContentPct(cocktail.ingredients, finalVolumeMl, 'ABV'),
+    sugarContentPct: getContentPct(
+      cocktail.ingredients,
+      finalVolumeMl,
+      'Sugar',
+    ),
+    acidContentPct: getContentPct(cocktail.ingredients, finalVolumeMl, 'Acid'),
+    dilution,
   }
 }

@@ -1,6 +1,9 @@
 import { List, ListItem, ListItemText, Typography } from '@mui/material'
 import { Box } from '@mui/system'
-import { CocktailProfile, Technique } from '../globalDomain'
+import { option } from 'fp-ts'
+import { constNull, pipe } from 'fp-ts/function'
+import { CocktailProfile, MinMaxRange, Technique } from '../globalDomain'
+import { getTechniqueRanges } from '../utils/getTechniqueRanges'
 
 interface Props {
   technique: Technique
@@ -8,48 +11,75 @@ interface Props {
 }
 
 export function CocktailProfileList(props: Props) {
-  const dilutionAddendum = 1 + props.profile.dilution / 100
-  const volumeMl = props.profile.volumeMl * dilutionAddendum
-  const volumeOz = volumeMl / 30
-  const abv = props.profile.abv / dilutionAddendum
-  const sugarContentPct = props.profile.sugarContentPct / dilutionAddendum
-  const acidContentPct = props.profile.acidContentPct / dilutionAddendum
+  const { volumeMl, volumeOz, abv, sugarContentPct, acidContentPct, dilution } =
+    props.profile
+  const ranges = getTechniqueRanges(props.technique)
 
-  return (
-    <Box>
-      <Typography variant="h6">Profile</Typography>
-      <List>
-        <ListItem>
-          <ListItemText primary={props.technique.name} secondary="Technique" />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary={`${volumeMl.toFixed(2)} ml (${volumeOz.toFixed(2)} oz)`}
-            secondary="Volume"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText primary={`${abv.toFixed(2)}%`} secondary="ABV" />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary={`${sugarContentPct.toFixed(2)}%`}
-            secondary="Sugar content"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary={`${acidContentPct.toFixed(2)}%`}
-            secondary="Acid content"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary={`${props.profile.dilution.toFixed(2)}%`}
-            secondary="Dilution"
-          />
-        </ListItem>
-      </List>
-    </Box>
+  return pipe(
+    ranges,
+    option.fold(constNull, ranges => (
+      <Box>
+        <Typography variant="h6">Profile</Typography>
+        <List>
+          <ListItem>
+            <ListItemText
+              primary={props.technique.name}
+              secondary="Technique"
+            />
+          </ListItem>
+          <ListItem>
+            <ListItemText
+              primary={`${volumeMl.toFixed(2)} ml (${volumeOz.toFixed(2)} oz)`}
+              secondary={`Volume (${computeBalance(volumeOz, ranges.volume)})`}
+            />
+          </ListItem>
+          <ListItem>
+            <ListItemText
+              primary={`${abv.toFixed(2)}%`}
+              secondary={`ABV (${computeBalance(abv, ranges.abv)})`}
+            />
+          </ListItem>
+          <ListItem>
+            <ListItemText
+              primary={`${sugarContentPct.toFixed(2)}%`}
+              secondary={`Sugar content (${computeBalance(
+                sugarContentPct,
+                ranges.sugar,
+              )})`}
+            />
+          </ListItem>
+          <ListItem>
+            <ListItemText
+              primary={`${acidContentPct.toFixed(2)}%`}
+              secondary={`Acid content (${computeBalance(
+                acidContentPct,
+                ranges.acid,
+              )})`}
+            />
+          </ListItem>
+          <ListItem>
+            <ListItemText
+              primary={`${dilution.toFixed(2)}%`}
+              secondary={`Dilution (${computeBalance(
+                dilution,
+                ranges.dilution,
+              )})`}
+            />
+          </ListItem>
+        </List>
+      </Box>
+    )),
   )
+}
+
+function computeBalance(value: number, range: MinMaxRange): string {
+  if (value < range.min) {
+    const error = (1 - value / range.min) * 100
+    return `${error.toFixed(2)}% low`
+  } else if (value < range.max) {
+    return 'balanced'
+  } else {
+    const error = (1 - range.max / value) * 100
+    return `${error.toFixed(2)}% high`
+  }
 }

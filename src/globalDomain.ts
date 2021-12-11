@@ -65,7 +65,7 @@ export const RangeUnit = t.intersection(
   'RangeUnit',
 )
 
-const MinMaxRange = t.type(
+export const MinMaxRange = t.type(
   {
     min: t.number,
     max: t.number,
@@ -73,6 +73,7 @@ const MinMaxRange = t.type(
   },
   'MinMaxRange',
 )
+export type MinMaxRange = t.TypeOf<typeof MinMaxRange>
 
 export const TechniqueCode = t.keyof(
   {

@@ -1,7 +1,10 @@
 import { Stack, Typography } from '@mui/material'
 import { styled } from '@mui/system'
+import { option } from 'fp-ts'
+import { constNull, pipe } from 'fp-ts/function'
 import { useMemo } from 'react'
 import { CocktailProfile, Technique } from '../../globalDomain'
+import { getTechniqueRanges } from '../../utils/getTechniqueRanges'
 import './ProfileGraph.css'
 
 interface Props {
@@ -10,64 +13,49 @@ interface Props {
 }
 
 export function ProfileGraph(props: Props) {
-  const volumeRange = props.technique.ranges.find(
-    ({ unit: { name } }) => name === 'Ounce',
-  )
+  const ranges = getTechniqueRanges(props.technique)
 
-  const abvRange = props.technique.ranges.find(
-    ({ unit: { name } }) => name === 'ABV',
-  )
+  return pipe(
+    ranges,
+    option.fold(constNull, ranges => (
+      <Stack className="ProfileGraph" spacing={2}>
+        <Typography variant="h6">Balance</Typography>
 
-  const sugarRange = props.technique.ranges.find(
-    ({ unit: { name } }) => name === 'Sugar',
-  )
-
-  const acidRange = props.technique.ranges.find(
-    ({ unit: { name } }) => name === 'Acid',
-  )
-
-  const dilutionRange = props.technique.ranges.find(
-    ({ unit: { name } }) => name === 'Dilution',
-  )
-
-  return (
-    <Stack className="ProfileGraph" spacing={2}>
-      <Typography variant="h6">Balance</Typography>
-
-      <div className="balance-graph">
-        {volumeRange ? (
-          <Column
-            title="Volume"
-            range={volumeRange}
-            value={props.profile.volumeOz}
-          />
-        ) : null}
-        {abvRange ? (
-          <Column title="ABV" range={abvRange} value={props.profile.abv} />
-        ) : null}
-        {sugarRange ? (
-          <Column
-            title="Sweetness"
-            range={sugarRange}
-            value={props.profile.sugarContentPct}
-          />
-        ) : null}
-        {acidRange ? (
-          <Column
-            title="Acidity"
-            range={acidRange}
-            value={props.profile.acidContentPct}
-          />
-        ) : null}
-        {dilutionRange ? (
-          <Column
-            title="Dilution"
-            range={dilutionRange}
-            value={props.profile.dilution}
-          />
-        ) : null}
-      </div>
-    </Stack>
+        <div className="balance-graph">
+          {ranges.volume ? (
+            <Column
+              title="Volume"
+              range={ranges.volume}
+              value={props.profile.volumeOz}
+            />
+          ) : null}
+          {ranges.abv ? (
+            <Column title="ABV" range={ranges.abv} value={props.profile.abv} />
+          ) : null}
+          {ranges.sugar ? (
+            <Column
+              title="Sweetness"
+              range={ranges.sugar}
+              value={props.profile.sugarContentPct}
+            />
+          ) : null}
+          {ranges.acid ? (
+            <Column
+              title="Acidity"
+              range={ranges.acid}
+              value={props.profile.acidContentPct}
+            />
+          ) : null}
+          {ranges.dilution ? (
+            <Column
+              title="Dilution"
+              range={ranges.dilution}
+              value={props.profile.dilution}
+            />
+          ) : null}
+        </div>
+      </Stack>
+    )),
   )
 }
 
