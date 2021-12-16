@@ -210,7 +210,7 @@ export function IngredientsForm(props: Props) {
   )
 
   return (
-    <Stack spacing={4}>
+    <Stack spacing={2}>
       <Typography variant="h6">Ingredients:</Typography>
       {props.ingredients.length ? (
         <List>

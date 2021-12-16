@@ -11,7 +11,7 @@ import {
   ListItemIcon,
 } from '@mui/material'
 import { Box } from '@mui/system'
-import { boolean, option } from 'fp-ts'
+import { boolean, nonEmptyArray, option } from 'fp-ts'
 import { constVoid, flow, pipe } from 'fp-ts/function'
 import { Option } from 'fp-ts/Option'
 import { useEffect, useMemo, useState } from 'react'
@@ -29,6 +29,7 @@ import { CocktailProfileList } from '../../components/CocktailProfileList'
 import { ErrorAlert } from '../../components/ErrorAlert'
 import { Loading } from '../../components/Loading'
 import { ProfileGraph } from '../../components/ProfileGraph/ProfileGraph'
+import { TabBar } from '../../components/TabBar'
 import {
   Breadcrumb,
   useSetBreadcrumbs,
@@ -120,50 +121,8 @@ export function Cocktail() {
             ),
             Showing: () => {
               const profile = getCocktailProfile(cocktail)
-
-              return (
-                <Stack spacing={4}>
-                  <Typography variant="h1">{cocktail.name}</Typography>
-                  <Box>
-                    <Typography variant="h6">Ingredients</Typography>
-                    <List>
-                      {cocktail.ingredients
-                        .filter(({ after_technique }) => !after_technique)
-                        .map(ingredient => (
-                          <ListItem key={ingredient.ingredient.id}>
-                            <ListItemText
-                              primary={`${ingredient.amount} ${ingredient.unit.unit} ${ingredient.ingredient.name}`}
-                              secondary={ingredientRangesToString(
-                                ingredient.ingredient,
-                              )}
-                            />
-                          </ListItem>
-                        ))}
-                      {cocktail.ingredients
-                        .filter(({ after_technique }) => after_technique)
-                        .map(ingredient => (
-                          <ListItem key={ingredient.ingredient.id}>
-                            <ListItemIcon>
-                              <LocalDrink />
-                            </ListItemIcon>
-                            <ListItemText
-                              primary={`${ingredient.amount} ${ingredient.unit.unit} ${ingredient.ingredient.name}`}
-                              secondary={ingredientRangesToString(
-                                ingredient.ingredient,
-                              )}
-                            />
-                          </ListItem>
-                        ))}
-                    </List>
-                  </Box>
-                  <ProfileGraph
-                    profile={profile}
-                    technique={cocktail.technique}
-                  />
-                  <CocktailProfileList
-                    technique={cocktail.technique}
-                    profile={profile}
-                  />
+              const editCocktailActions = (
+                <>
                   <SpeedDial
                     ariaLabel="actions"
                     icon={<SpeedDialIcon />}
@@ -181,7 +140,86 @@ export function Cocktail() {
                     />
                   </SpeedDial>
                   {deleteDialog}
-                </Stack>
+                </>
+              )
+
+              return (
+                <TabBar
+                  content={{
+                    Profile: (
+                      <Stack spacing={4}>
+                        <Typography variant="h1">{cocktail.name}</Typography>
+                        <Box>
+                          <Typography variant="h6">Ingredients</Typography>
+                          <List>
+                            {cocktail.ingredients
+                              .filter(({ after_technique }) => !after_technique)
+                              .map(ingredient => (
+                                <ListItem key={ingredient.ingredient.id}>
+                                  <ListItemText
+                                    primary={`${ingredient.amount} ${ingredient.unit.unit} ${ingredient.ingredient.name}`}
+                                    secondary={ingredientRangesToString(
+                                      ingredient.ingredient,
+                                    )}
+                                  />
+                                </ListItem>
+                              ))}
+                            {cocktail.ingredients
+                              .filter(({ after_technique }) => after_technique)
+                              .map(ingredient => (
+                                <ListItem key={ingredient.ingredient.id}>
+                                  <ListItemIcon>
+                                    <LocalDrink />
+                                  </ListItemIcon>
+                                  <ListItemText
+                                    primary={`${ingredient.amount} ${ingredient.unit.unit} ${ingredient.ingredient.name}`}
+                                    secondary={ingredientRangesToString(
+                                      ingredient.ingredient,
+                                    )}
+                                  />
+                                </ListItem>
+                              ))}
+                          </List>
+                        </Box>
+                        <ProfileGraph
+                          profile={profile}
+                          technique={cocktail.technique}
+                        />
+                        <CocktailProfileList
+                          technique={cocktail.technique}
+                          profile={profile}
+                        />
+                        {editCocktailActions}
+                      </Stack>
+                    ),
+                    Recipe: (
+                      <Stack spacing={4}>
+                        <Typography variant="h1">{cocktail.name}</Typography>
+                        {pipe(
+                          cocktail.recipe,
+                          nonEmptyArray.fromArray,
+                          option.fold(
+                            () => (
+                              <Typography>
+                                There is no recipe for this cocktail.
+                              </Typography>
+                            ),
+                            recipe => (
+                              <List>
+                                {recipe.map(({ index, step }) => (
+                                  <ListItem key={index}>
+                                    <ListItemText primary={step} />
+                                  </ListItem>
+                                ))}
+                              </List>
+                            ),
+                          ),
+                        )}
+                        {editCocktailActions}
+                      </Stack>
+                    ),
+                  }}
+                />
               )
             },
             Editing: () => (

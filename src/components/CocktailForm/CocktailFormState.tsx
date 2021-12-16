@@ -1,4 +1,4 @@
-import { nonEmptyArray, option } from 'fp-ts'
+import { array, nonEmptyArray, option } from 'fp-ts'
 import { pipe } from 'fp-ts/function'
 import { sequenceS } from 'fp-ts/Apply'
 import { NonEmptyArray } from 'fp-ts/NonEmptyArray'
@@ -11,12 +11,14 @@ export interface State {
   name: Option<NonEmptyString>
   technique: Option<Technique>
   ingredients: CocktailIngredient[]
+  recipe: Option<NonEmptyArray<NonEmptyString>>
 }
 
 interface ValidState {
   name: NonEmptyString
   technique: Technique
   ingredients: NonEmptyArray<CocktailIngredient>
+  recipe: Option<NonEmptyArray<NonEmptyString>>
 }
 
 export function validateState(state: State): Option<ValidState> {
@@ -27,6 +29,10 @@ export function validateState(state: State): Option<ValidState> {
       ingredients: pipe(state.ingredients, nonEmptyArray.fromArray),
     },
     sequenceS(option.Apply),
+    option.map(options => ({
+      ...options,
+      recipe: state.recipe,
+    })),
   )
 }
 
@@ -35,6 +41,11 @@ export function stateFromCocktail(cocktail: Cocktail): State {
     name: pipe(cocktail.name, NonEmptyString.decode, option.fromEither),
     technique: option.some(cocktail.technique),
     ingredients: cocktail.ingredients,
+    recipe: pipe(
+      cocktail.recipe,
+      array.map(({ step }) => step),
+      nonEmptyArray.fromArray,
+    ),
   }
 }
 
@@ -43,6 +54,7 @@ export function emptyState(): State {
     name: option.none,
     technique: option.none,
     ingredients: [],
+    recipe: option.none,
   }
 }
 
@@ -56,6 +68,7 @@ export function stateToCocktailInput(state: ValidState): CocktailInput {
       unit: ingredient.unit.unit,
       after_technique: ingredient.after_technique,
     })),
+    recipe: state.recipe,
   }
 }
 
@@ -99,7 +112,22 @@ export function updateIngredients(
   }
 }
 
-type Action = UpdateNameAction | UpdateTechniqueAction | UpdateIngredientsAction
+interface UpdateRecipeAction {
+  type: 'UPDATE_RECIPE'
+  recipe: Option<NonEmptyArray<NonEmptyString>>
+}
+
+export function updateRecipe(
+  recipe: Option<NonEmptyArray<NonEmptyString>>,
+): UpdateRecipeAction {
+  return { type: 'UPDATE_RECIPE', recipe }
+}
+
+type Action =
+  | UpdateNameAction
+  | UpdateTechniqueAction
+  | UpdateIngredientsAction
+  | UpdateRecipeAction
 
 export function reducer(state: State, action: Action): State {
   switch (action.type) {
@@ -117,6 +145,11 @@ export function reducer(state: State, action: Action): State {
       return {
         ...state,
         ingredients: action.ingredients,
+      }
+    case 'UPDATE_RECIPE':
+      return {
+        ...state,
+        recipe: action.recipe,
       }
     default:
       return state

@@ -26,6 +26,7 @@ import {
   stateToCocktailInput,
   updateIngredients,
   updateName,
+  updateRecipe,
   updateTechnique,
   validateState,
 } from './CocktailFormState'
@@ -33,6 +34,9 @@ import { getCocktailProfile } from '../../utils/getCocktailProfile'
 import { CocktailProfileList } from '../CocktailProfileList'
 import { ProfileGraph } from '../ProfileGraph/ProfileGraph'
 import { IngredientsSliders } from '../IngredientsSliders'
+import { CocktailRecipeForm } from './CocktailRecipeForm'
+import { NonEmptyArray } from 'fp-ts/NonEmptyArray'
+import { NonEmptyString } from 'io-ts-types'
 
 interface Props {
   cocktail: Option<Cocktail>
@@ -66,6 +70,9 @@ export function CocktailForm(props: Props) {
 
   const onIngredientsChange = (ingredients: CocktailIngredient[]) =>
     dispatch(updateIngredients(ingredients))
+
+  const onRecipeChange = (recipe: Option<NonEmptyArray<NonEmptyString>>) =>
+    dispatch(updateRecipe(recipe))
 
   const onSubmit = () => {
     pipe(validState, option.fold(constVoid, flow(stateToCocktailInput, submit)))
@@ -108,6 +115,11 @@ export function CocktailForm(props: Props) {
           ingredients={state.ingredients}
           onChange={onIngredientsChange}
           disabled={isFormDisabled}
+        />
+        <Divider />
+        <CocktailRecipeForm
+          cocktail={props.cocktail}
+          onChange={onRecipeChange}
         />
         <Divider />
         {pipe(

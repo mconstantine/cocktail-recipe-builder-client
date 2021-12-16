@@ -1,5 +1,9 @@
 import * as t from 'io-ts'
-import { BooleanFromNumber, DateFromISOString } from 'io-ts-types'
+import {
+  BooleanFromNumber,
+  DateFromISOString,
+  NonEmptyString,
+} from 'io-ts-types'
 
 const UnitCommonData = t.type(
   {
@@ -129,6 +133,11 @@ export const CocktailIngredient = t.type(
 )
 export type CocktailIngredient = t.TypeOf<typeof CocktailIngredient>
 
+const CocktailRecipeStep = t.type({
+  index: t.Int,
+  step: NonEmptyString,
+})
+
 export const Cocktail = t.type(
   {
     id: t.Int,
@@ -137,6 +146,7 @@ export const Cocktail = t.type(
     updated_at: DateFromISOString,
     technique: Technique,
     ingredients: t.array(CocktailIngredient, 'Ingredients'),
+    recipe: t.array(CocktailRecipeStep, 'Recipe'),
   },
   'Cocktail',
 )
