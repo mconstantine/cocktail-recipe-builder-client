@@ -1,11 +1,17 @@
-import { Cocktail, CocktailIngredient, CocktailProfile } from '../globalDomain'
+import {
+  Cocktail,
+  CocktailIngredient,
+  CocktailProfile,
+  NonNegative,
+  unsafeNonNegative,
+} from '../globalDomain'
 import { computeDilution } from './computeDilution'
 
 function getContentPct(
   ingredients: CocktailIngredient[],
   finalCocktailVolumeMl: number,
   targetUnitName: string,
-): number {
+): NonNegative {
   const contentMl = ingredients.reduce((res, ingredient) => {
     const targetRange = ingredient.ingredient.ranges.find(
       ({ unit: { name } }) => name === targetUnitName,
@@ -21,7 +27,7 @@ function getContentPct(
     return res + ingredientContentRatio * ingredientAmountMl
   }, 0)
 
-  return (contentMl / finalCocktailVolumeMl) * 100
+  return unsafeNonNegative((contentMl / finalCocktailVolumeMl) * 100)
 }
 
 export function getCocktailProfile(
@@ -46,8 +52,8 @@ export function getCocktailProfile(
   const finalVolumeMl = initialVolumeMl * dilutionAddendum
 
   return {
-    volumeMl: finalVolumeMl,
-    volumeOz: finalVolumeMl / 30,
+    volumeMl: unsafeNonNegative(finalVolumeMl),
+    volumeOz: unsafeNonNegative(finalVolumeMl / 30),
     abv: getContentPct(cocktail.ingredients, finalVolumeMl, 'ABV'),
     sugarContentPct: getContentPct(
       cocktail.ingredients,

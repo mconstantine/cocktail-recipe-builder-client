@@ -14,7 +14,11 @@ import { constVoid, pipe } from 'fp-ts/function'
 import { IO } from 'fp-ts/IO'
 import { Reader } from 'fp-ts/Reader'
 import { useState } from 'react'
-import { CocktailIngredient, IngredientUnit } from '../globalDomain'
+import {
+  CocktailIngredient,
+  IngredientUnit,
+  NonNegative,
+} from '../globalDomain'
 
 interface Props {
   ingredients: CocktailIngredient[]
@@ -96,7 +100,7 @@ function IngredientSlider(props: IngredientSliderProps) {
       setMax(value)
     }
 
-    if (value !== props.ingredient.amount) {
+    if (NonNegative.is(value) && value !== props.ingredient.amount) {
       props.onChange({
         ...props.ingredient,
         amount: value,

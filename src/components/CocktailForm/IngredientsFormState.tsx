@@ -6,6 +6,8 @@ import {
   CocktailIngredient,
   Ingredient,
   IngredientUnit,
+  NonNegative,
+  NonNegativeInteger,
 } from '../../globalDomain'
 import { option } from 'fp-ts'
 
@@ -20,7 +22,7 @@ function readyState(): ReadyState {
 interface AddingState {
   type: 'ADDING'
   ingredient: Option<Ingredient>
-  amount: Option<number>
+  amount: Option<NonNegative>
   unit: Option<IngredientUnit>
   after_technique: boolean
 }
@@ -34,9 +36,9 @@ function addingState(data: Omit<AddingState, 'type'>): AddingState {
 
 interface EditingState {
   type: 'EDITING'
-  originalIngredientIndex: number
+  originalIngredientIndex: NonNegativeInteger
   ingredient: Option<Ingredient>
-  amount: Option<number>
+  amount: Option<NonNegative>
   unit: Option<IngredientUnit>
   after_technique: boolean
 }
@@ -50,13 +52,13 @@ function editingState(data: Omit<EditingState, 'type'>): EditingState {
 
 interface ValidAddingState {
   ingredient: Ingredient
-  amount: number
+  amount: NonNegative
   unit: IngredientUnit
   after_technique: boolean
 }
 
 interface ValidEditingState extends ValidAddingState {
-  originalIngredientIndex: number
+  originalIngredientIndex: NonNegativeInteger
 }
 
 export function validateState(state: AddingState): Option<ValidAddingState>
@@ -152,10 +154,10 @@ export function updateIngredientAction(
 
 interface UpdateAmountAction {
   type: 'UPDATE_AMOUNT'
-  amount: number
+  amount: NonNegative
 }
 
-export function updateAmountAction(amount: number): UpdateAmountAction {
+export function updateAmountAction(amount: NonNegative): UpdateAmountAction {
   return { type: 'UPDATE_AMOUNT', amount }
 }
 
@@ -182,12 +184,12 @@ export function updateAfterTechniqueAction(
 interface ImportAction {
   type: 'IMPORT'
   ingredient: CocktailIngredient
-  originalIngredientIndex: number
+  originalIngredientIndex: NonNegativeInteger
 }
 
 export function importAction(
   ingredient: CocktailIngredient,
-  originalIngredientIndex: number,
+  originalIngredientIndex: NonNegativeInteger,
 ): ImportAction {
   return { type: 'IMPORT', ingredient, originalIngredientIndex }
 }

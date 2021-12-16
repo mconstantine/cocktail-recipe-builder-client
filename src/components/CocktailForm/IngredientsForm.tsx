@@ -14,14 +14,20 @@ import {
   Typography,
 } from '@mui/material'
 import { Box } from '@mui/system'
-import { option } from 'fp-ts'
+import { either, option } from 'fp-ts'
 import { constNull, pipe, flow, constVoid, constFalse } from 'fp-ts/function'
 import { Reader } from 'fp-ts/Reader'
 import { NonEmptyString } from 'io-ts-types'
 import { useReducer, useState } from 'react'
 import { query } from '../../api/api'
 import { useGet } from '../../api/useApi'
-import { CocktailIngredient, IngredientUnit } from '../../globalDomain'
+import {
+  CocktailIngredient,
+  IngredientUnit,
+  NonNegative,
+  unsafeNonNegative,
+  unsafeNonNegativeInteger,
+} from '../../globalDomain'
 import { useDebounce } from '../../hooks/useDebounce'
 import { getUnits } from '../../pages/CreateCocktail/api'
 import { getIngredients } from '../../pages/Ingredients/api'
@@ -166,9 +172,12 @@ export function IngredientsForm(props: Props) {
         label="Amount"
         value={pipe(
           amount,
-          option.getOrElse(() => 0),
+          option.getOrElse(() => unsafeNonNegative(0)),
         )}
-        onChange={flow(updateAmountAction, dispatch)}
+        onChange={flow(
+          NonNegative.decode,
+          either.bimap(constVoid, flow(updateAmountAction, dispatch)),
+        )}
         min={0}
         disabled={props.disabled}
       />
@@ -229,7 +238,11 @@ export function IngredientsForm(props: Props) {
               }
             >
               <ListItemButton
-                onClick={() => dispatch(importAction(ingredient, index))}
+                onClick={() =>
+                  dispatch(
+                    importAction(ingredient, unsafeNonNegativeInteger(index)),
+                  )
+                }
                 disabled={props.disabled}
               >
                 <ListItemText

@@ -1,11 +1,13 @@
 import * as t from 'io-ts'
+import { NonEmptyString } from 'io-ts-types'
+import { NonNegative } from '../../globalDomain'
 
 export const IngredientInput = t.type(
   {
-    name: t.string,
-    abv: t.number,
-    sugar: t.number,
-    acid: t.number,
+    name: NonEmptyString,
+    abv: NonNegative,
+    sugar: NonNegative,
+    acid: NonNegative,
   },
   'IngredientInput',
 )

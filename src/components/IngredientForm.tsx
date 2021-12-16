@@ -1,8 +1,15 @@
 import { TextField } from '@mui/material'
 import { option } from 'fp-ts'
-import { constFalse, constNull, constTrue, pipe } from 'fp-ts/function'
+import {
+  constFalse,
+  constNull,
+  constTrue,
+  constVoid,
+  flow,
+  pipe,
+} from 'fp-ts/function'
 import { Option } from 'fp-ts/Option'
-import { useState } from 'react'
+import { useReducer } from 'react'
 import { IngredientInput } from '../pages/CreateIngredient/domain'
 import { Form } from './Form'
 import { PercentageField } from './PercentageField'
@@ -10,6 +17,16 @@ import { CommandHookOutput, foldCommand } from '../api/useApi'
 import { ErrorAlert } from './ErrorAlert'
 import { IO } from 'fp-ts/IO'
 import { Ingredient } from '../globalDomain'
+import {
+  emptyState,
+  ingredientToState,
+  reducer,
+  updateAbv,
+  updateAcid,
+  updateName,
+  updateSugar,
+  validateState,
+} from './IngredientFormState'
 
 interface Props {
   ingredient: Option<Ingredient>
@@ -18,80 +35,70 @@ interface Props {
   submitLabel: string
 }
 
-function ingredientToInput(ingredient: Ingredient): IngredientInput {
-  const abvRange = ingredient.ranges.find(
-    ({ unit: { name } }) => name === 'ABV',
-  )
-  const sugarRange = ingredient.ranges.find(
-    ({ unit: { name } }) => name === 'Sugar',
-  )
-  const acidRange = ingredient.ranges.find(
-    ({ unit: { name } }) => name === 'Acid',
-  )
-
-  return {
-    name: ingredient.name,
-    abv: abvRange?.amount ?? 0,
-    sugar: sugarRange?.amount ?? 0,
-    acid: acidRange?.amount ?? 0,
-  }
-}
-
 export function IngredientForm(props: Props) {
   const [status, submit] = props.command
 
-  const [input, setInput] = useState<IngredientInput>(
+  const [state, dispatch] = useReducer(
+    reducer,
     pipe(
       props.ingredient,
-      option.map(ingredientToInput),
-      option.getOrElse(() => ({ name: '', abv: 0, sugar: 0, acid: 0 })),
+      option.fold(() => emptyState(), ingredientToState),
     ),
   )
 
-  const onNameChange = (name: string) => setInput(data => ({ ...data, name }))
-  const onAbvChange = (abv: number) => setInput(data => ({ ...data, abv }))
-
-  const onSugarChange = (sugar: number) =>
-    setInput(data => ({ ...data, sugar }))
-
-  const onAcidChange = (acid: number) => setInput(data => ({ ...data, acid }))
+  const isStateValid = option.isSome(validateState(state))
 
   const isDisabled = pipe(
     status,
     foldCommand(constTrue, constFalse, constFalse),
   )
 
+  const onSubmit = () =>
+    pipe(state, validateState, option.fold(constVoid, submit))
+
   return (
     <Form
-      onSubmit={() => submit(input)}
+      onSubmit={onSubmit}
       onCancel={props.onCancel}
       submitLabel={props.submitLabel}
-      disabled={isDisabled}
+      disabled={isDisabled || !isStateValid}
     >
       <TextField
-        value={input.name}
-        onChange={e => onNameChange(e.currentTarget.value)}
+        value={pipe(
+          state.name,
+          option.getOrElse(() => ''),
+        )}
+        onChange={e => dispatch(updateName(e.currentTarget.value))}
         label="Name"
         required
         disabled={isDisabled}
       />
       <PercentageField
-        value={input.abv}
-        onChange={onAbvChange}
+        value={pipe(
+          state.abv,
+          option.getOrElse(() => 0),
+        )}
+        onChange={flow(updateAbv, dispatch)}
         label="ABV (%)"
         required
         disabled={isDisabled}
       />
       <PercentageField
-        value={input.sugar}
-        onChange={onSugarChange}
+        value={pipe(
+          state.sugar,
+          option.getOrElse(() => 0),
+        )}
+        onChange={flow(updateSugar, dispatch)}
         label="Sugar content (%)"
         required
         disabled={isDisabled}
       />
       <PercentageField
-        value={input.acid}
-        onChange={onAcidChange}
+        value={pipe(
+          state.acid,
+          option.getOrElse(() => 0),
+        )}
+        onChange={flow(updateAcid, dispatch)}
         label="Total acidity (%)"
         required
         disabled={isDisabled}
