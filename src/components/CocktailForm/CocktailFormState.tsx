@@ -12,6 +12,7 @@ export interface State {
   technique: Option<Technique>
   ingredients: CocktailIngredient[]
   recipe: Option<NonEmptyArray<NonEmptyString>>
+  garnish: Option<NonEmptyString>
 }
 
 interface ValidState {
@@ -19,6 +20,7 @@ interface ValidState {
   technique: Technique
   ingredients: NonEmptyArray<CocktailIngredient>
   recipe: Option<NonEmptyArray<NonEmptyString>>
+  garnish: Option<NonEmptyString>
 }
 
 export function validateState(state: State): Option<ValidState> {
@@ -32,6 +34,7 @@ export function validateState(state: State): Option<ValidState> {
     option.map(options => ({
       ...options,
       recipe: state.recipe,
+      garnish: state.garnish,
     })),
   )
 }
@@ -46,6 +49,7 @@ export function stateFromCocktail(cocktail: Cocktail): State {
       array.map(({ step }) => step),
       nonEmptyArray.fromArray,
     ),
+    garnish: cocktail.garnish,
   }
 }
 
@@ -55,6 +59,7 @@ export function emptyState(): State {
     technique: option.none,
     ingredients: [],
     recipe: option.none,
+    garnish: option.none,
   }
 }
 
@@ -69,6 +74,7 @@ export function stateToCocktailInput(state: ValidState): CocktailInput {
       after_technique: ingredient.after_technique,
     })),
     recipe: state.recipe,
+    garnish: state.garnish,
   }
 }
 
@@ -123,11 +129,23 @@ export function updateRecipe(
   return { type: 'UPDATE_RECIPE', recipe }
 }
 
+interface UpdateGarnishAction {
+  type: 'UPDATE_GARNISH'
+  garnish: Option<NonEmptyString>
+}
+
+export function updateGarnish(
+  garnish: Option<NonEmptyString>,
+): UpdateGarnishAction {
+  return { type: 'UPDATE_GARNISH', garnish }
+}
+
 type Action =
   | UpdateNameAction
   | UpdateTechniqueAction
   | UpdateIngredientsAction
   | UpdateRecipeAction
+  | UpdateGarnishAction
 
 export function reducer(state: State, action: Action): State {
   switch (action.type) {
@@ -150,6 +168,11 @@ export function reducer(state: State, action: Action): State {
       return {
         ...state,
         recipe: action.recipe,
+      }
+    case 'UPDATE_GARNISH':
+      return {
+        ...state,
+        garnish: action.garnish,
       }
     default:
       return state

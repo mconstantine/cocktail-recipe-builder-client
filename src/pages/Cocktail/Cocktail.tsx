@@ -12,7 +12,7 @@ import {
 } from '@mui/material'
 import { Box } from '@mui/system'
 import { boolean, nonEmptyArray, option } from 'fp-ts'
-import { constVoid, flow, pipe } from 'fp-ts/function'
+import { constNull, constVoid, flow, pipe } from 'fp-ts/function'
 import { Option } from 'fp-ts/Option'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
@@ -181,6 +181,15 @@ export function Cocktail() {
                               ))}
                           </List>
                         </Box>
+                        {pipe(
+                          cocktail.garnish,
+                          option.fold(constNull, garnish => (
+                            <Box>
+                              <Typography variant="h6">Garnish</Typography>
+                              <Typography>{garnish}</Typography>
+                            </Box>
+                          )),
+                        )}
                         <ProfileGraph
                           profile={profile}
                           technique={cocktail.technique}

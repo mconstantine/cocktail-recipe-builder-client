@@ -24,6 +24,7 @@ import {
   reducer,
   stateFromCocktail,
   stateToCocktailInput,
+  updateGarnish,
   updateIngredients,
   updateName,
   updateRecipe,
@@ -74,6 +75,11 @@ export function CocktailForm(props: Props) {
   const onRecipeChange = (recipe: Option<NonEmptyArray<NonEmptyString>>) =>
     dispatch(updateRecipe(recipe))
 
+  const onGarnishChange = (garnish: string) =>
+    dispatch(
+      updateGarnish(pipe(garnish, NonEmptyString.decode, option.fromEither)),
+    )
+
   const onSubmit = () => {
     pipe(validState, option.fold(constVoid, flow(stateToCocktailInput, submit)))
   }
@@ -110,6 +116,16 @@ export function CocktailForm(props: Props) {
             option.getOrElse<Technique | null>(constNull),
           )}
           onChange={(_, value) => onTechniqueChange(option.fromNullable(value))}
+        />
+        <TextField
+          value={pipe(
+            state.garnish,
+            option.getOrElse(() => ''),
+          )}
+          onChange={e => onGarnishChange(e.currentTarget.value)}
+          label="Garnish"
+          required
+          disabled={isFormDisabled}
         />
         <IngredientsForm
           ingredients={state.ingredients}

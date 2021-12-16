@@ -19,6 +19,7 @@ export const CocktailInput = t.type(
     technique_code: TechniqueCode,
     ingredients: t.array(CocktailIngredientInput, 'CocktailIngredients'),
     recipe: optionFromNullable(nonEmptyArray(NonEmptyString)),
+    garnish: optionFromNullable(NonEmptyString),
   },
   'CocktailInput',
 )

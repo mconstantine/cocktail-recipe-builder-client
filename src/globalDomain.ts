@@ -3,6 +3,7 @@ import {
   BooleanFromNumber,
   DateFromISOString,
   NonEmptyString,
+  optionFromNullable,
 } from 'io-ts-types'
 
 const UnitCommonData = t.type(
@@ -147,6 +148,7 @@ export const Cocktail = t.type(
     technique: Technique,
     ingredients: t.array(CocktailIngredient, 'Ingredients'),
     recipe: t.array(CocktailRecipeStep, 'Recipe'),
+    garnish: optionFromNullable(NonEmptyString),
   },
   'Cocktail',
 )
