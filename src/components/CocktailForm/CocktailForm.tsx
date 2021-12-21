@@ -124,7 +124,6 @@ export function CocktailForm(props: Props) {
           )}
           onChange={e => onGarnishChange(e.currentTarget.value)}
           label="Garnish"
-          required
           disabled={isFormDisabled}
         />
         <IngredientsForm
