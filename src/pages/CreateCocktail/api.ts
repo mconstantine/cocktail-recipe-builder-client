@@ -16,7 +16,7 @@ export const getTechniques = makeGetRequest({
 })
 
 export const getUnits = makeGetRequest({
-  url: '/units',
+  url: '/cocktails/units',
   inputCodec: t.void,
   outputCodec: t.array(IngredientUnit, 'IngredientUnits'),
 })
