@@ -1,4 +1,4 @@
-import { TextField } from '@mui/material'
+import { Divider, TextField } from '@mui/material'
 import { option } from 'fp-ts'
 import {
   constFalse,
@@ -16,7 +16,7 @@ import { PercentageField } from '../PercentageField'
 import { CommandHookOutput, foldCommand } from '../../api/useApi'
 import { ErrorAlert } from '../ErrorAlert'
 import { IO } from 'fp-ts/IO'
-import { Ingredient } from '../../globalDomain'
+import { Ingredient, IngredientIngredient } from '../../globalDomain'
 import {
   emptyState,
   ingredientToState,
@@ -24,10 +24,12 @@ import {
   stateToIngredientInput,
   updateAbv,
   updateAcid,
+  updateIngredients,
   updateName,
   updateSugar,
   validateState,
 } from './IngredientFormState'
+import { IngredientsForm } from './IngredientsForm'
 
 interface Props {
   ingredient: Option<Ingredient>
@@ -53,6 +55,9 @@ export function IngredientForm(props: Props) {
     status,
     foldCommand(constTrue, constFalse, constFalse),
   )
+
+  const onIngredientsChange = (ingredients: IngredientIngredient[]) =>
+    dispatch(updateIngredients(ingredients))
 
   const onSubmit = () =>
     pipe(
@@ -108,6 +113,15 @@ export function IngredientForm(props: Props) {
         required
         disabled={isDisabled}
       />
+      <IngredientsForm
+        ingredients={pipe(
+          state.ingredients,
+          option.getOrElse(() => [] as IngredientIngredient[]),
+        )}
+        onChange={onIngredientsChange}
+        disabled={isDisabled}
+      />
+      <Divider />
       {pipe(
         status,
         foldCommand(

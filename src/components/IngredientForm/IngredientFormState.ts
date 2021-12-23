@@ -8,8 +8,6 @@ import {
   IngredientIngredient,
   NonNegative,
   unsafeNonNegative,
-  VolumeUnitName,
-  WeightUnitName,
 } from '../../globalDomain'
 import { NonEmptyArray } from 'fp-ts/NonEmptyArray'
 import { IngredientInput } from '../../pages/CreateIngredient/domain'
@@ -68,7 +66,7 @@ export function stateToIngredientInput(state: ValidState): IngredientInput {
         nonEmptyArray.map(ingredient => ({
           ...ingredient,
           id: ingredient.ingredient.id,
-          unit: ingredient.unit.name as WeightUnitName | VolumeUnitName,
+          unit: ingredient.unit.unit,
         })),
       ),
     ),
@@ -146,11 +144,26 @@ export function updateAcid(acid: number): UpdateAcidAction {
   }
 }
 
+interface UpdateIngredientsAction {
+  type: 'UPDATE_INGREDIENTS'
+  ingredients: IngredientIngredient[]
+}
+
+export function updateIngredients(
+  ingredients: IngredientIngredient[],
+): UpdateIngredientsAction {
+  return {
+    type: 'UPDATE_INGREDIENTS',
+    ingredients,
+  }
+}
+
 type Action =
   | UpdateNameAction
   | UpdateAbvAction
   | UpdateSugarAction
   | UpdateAcidAction
+  | UpdateIngredientsAction
 
 export function reducer(state: State, action: Action): State {
   switch (action.type) {
@@ -174,7 +187,10 @@ export function reducer(state: State, action: Action): State {
         ...state,
         acid: pipe(action.acid, NonNegative.decode, option.fromEither),
       }
-    default:
-      return state
+    case 'UPDATE_INGREDIENTS':
+      return {
+        ...state,
+        ingredients: pipe(action.ingredients, nonEmptyArray.fromArray),
+      }
   }
 }
