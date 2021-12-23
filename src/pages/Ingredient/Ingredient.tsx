@@ -170,7 +170,6 @@ export function Ingredient() {
                           <Typography variant="h6">Recipe</Typography>
                           {pipe(
                             ingredient.recipe,
-                            nonEmptyArray.fromArray,
                             option.fold(
                               () => (
                                 <Typography>

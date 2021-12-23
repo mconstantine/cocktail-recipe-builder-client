@@ -51,7 +51,6 @@ export function ingredientToState(ingredient: Ingredient): State {
     ingredients: pipe(ingredient.ingredients, nonEmptyArray.fromArray),
     recipe: pipe(
       ingredient.recipe,
-      nonEmptyArray.fromArray,
       option.map(nonEmptyArray.map(({ step }) => step)),
     ),
   }
@@ -158,12 +157,24 @@ export function updateIngredients(
   }
 }
 
+interface UpdateRecipeAction {
+  type: 'UPDATE_RECIPE'
+  recipe: Option<NonEmptyArray<NonEmptyString>>
+}
+
+export function updateRecipe(
+  recipe: Option<NonEmptyArray<NonEmptyString>>,
+): UpdateRecipeAction {
+  return { type: 'UPDATE_RECIPE', recipe }
+}
+
 type Action =
   | UpdateNameAction
   | UpdateAbvAction
   | UpdateSugarAction
   | UpdateAcidAction
   | UpdateIngredientsAction
+  | UpdateRecipeAction
 
 export function reducer(state: State, action: Action): State {
   switch (action.type) {
@@ -191,6 +202,11 @@ export function reducer(state: State, action: Action): State {
       return {
         ...state,
         ingredients: pipe(action.ingredients, nonEmptyArray.fromArray),
+      }
+    case 'UPDATE_RECIPE':
+      return {
+        ...state,
+        recipe: action.recipe,
       }
   }
 }

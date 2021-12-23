@@ -4,6 +4,7 @@ import * as t from 'io-ts'
 import {
   BooleanFromNumber,
   DateFromISOString,
+  nonEmptyArray,
   NonEmptyString,
   optionFromNullable,
 } from 'io-ts-types'
@@ -235,7 +236,7 @@ export const Ingredient = t.intersection([
   IngredientWithoutIngredients,
   t.type({
     ingredients: t.array(IngredientIngredient, 'Ingredients'),
-    recipe: t.array(RecipeStep, 'Recipe'),
+    recipe: optionFromNullable(nonEmptyArray(RecipeStep)),
   }),
 ])
 export type Ingredient = t.TypeOf<typeof Ingredient>
@@ -259,7 +260,7 @@ export const Cocktail = t.type(
     updated_at: DateFromISOString,
     technique: Technique,
     ingredients: t.array(CocktailIngredient, 'Ingredients'),
-    recipe: t.array(RecipeStep, 'Recipe'),
+    recipe: optionFromNullable(nonEmptyArray(RecipeStep)),
     garnish: optionFromNullable(NonEmptyString),
   },
   'Cocktail',

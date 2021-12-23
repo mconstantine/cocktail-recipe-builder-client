@@ -12,7 +12,7 @@ import { useReducer } from 'react'
 import { CommandHookOutput, foldCommand, useGet } from '../../api/useApi'
 import { Cocktail, CocktailIngredient, Technique } from '../../globalDomain'
 import { Form } from '../Form'
-import { option } from 'fp-ts'
+import { nonEmptyArray, option } from 'fp-ts'
 import { CocktailInput } from '../../pages/CreateCocktail/domain'
 import { Autocomplete, Divider, TextField } from '@mui/material'
 import { getTechniques, getUnits } from '../../pages/CreateCocktail/api'
@@ -35,7 +35,7 @@ import { getCocktailProfile } from '../../utils/getCocktailProfile'
 import { CocktailProfileList } from '../CocktailProfileList'
 import { ProfileGraph } from '../ProfileGraph/ProfileGraph'
 import { IngredientsSliders } from '../IngredientsSliders'
-import { CocktailRecipeForm } from './CocktailRecipeForm'
+import { RecipeForm } from '../RecipeForm/RecipeForm'
 import { NonEmptyArray } from 'fp-ts/NonEmptyArray'
 import { NonEmptyString } from 'io-ts-types'
 
@@ -132,8 +132,12 @@ export function CocktailForm(props: Props) {
           disabled={isFormDisabled}
         />
         <Divider />
-        <CocktailRecipeForm
-          cocktail={props.cocktail}
+        <RecipeForm
+          steps={pipe(
+            props.cocktail,
+            option.chain(({ recipe }) => recipe),
+            option.map(nonEmptyArray.map(({ step }) => step)),
+          )}
           onChange={onRecipeChange}
         />
         <Divider />

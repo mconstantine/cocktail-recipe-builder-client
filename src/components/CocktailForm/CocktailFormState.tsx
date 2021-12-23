@@ -1,4 +1,4 @@
-import { array, nonEmptyArray, option } from 'fp-ts'
+import { nonEmptyArray, option } from 'fp-ts'
 import { pipe } from 'fp-ts/function'
 import { sequenceS } from 'fp-ts/Apply'
 import { NonEmptyArray } from 'fp-ts/NonEmptyArray'
@@ -46,8 +46,7 @@ export function stateFromCocktail(cocktail: Cocktail): State {
     ingredients: cocktail.ingredients,
     recipe: pipe(
       cocktail.recipe,
-      array.map(({ step }) => step),
-      nonEmptyArray.fromArray,
+      option.map(nonEmptyArray.map(({ step }) => step)),
     ),
     garnish: cocktail.garnish,
   }

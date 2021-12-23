@@ -1,5 +1,5 @@
 import { Divider, TextField } from '@mui/material'
-import { option } from 'fp-ts'
+import { nonEmptyArray, option } from 'fp-ts'
 import {
   constFalse,
   constNull,
@@ -26,10 +26,14 @@ import {
   updateAcid,
   updateIngredients,
   updateName,
+  updateRecipe,
   updateSugar,
   validateState,
 } from './IngredientFormState'
 import { IngredientsForm } from './IngredientsForm'
+import { NonEmptyArray } from 'fp-ts/NonEmptyArray'
+import { NonEmptyString } from 'io-ts-types'
+import { RecipeForm } from '../RecipeForm/RecipeForm'
 
 interface Props {
   ingredient: Option<Ingredient>
@@ -58,6 +62,9 @@ export function IngredientForm(props: Props) {
 
   const onIngredientsChange = (ingredients: IngredientIngredient[]) =>
     dispatch(updateIngredients(ingredients))
+
+  const onRecipeChange = (recipe: Option<NonEmptyArray<NonEmptyString>>) =>
+    dispatch(updateRecipe(recipe))
 
   const onSubmit = () =>
     pipe(
@@ -122,6 +129,14 @@ export function IngredientForm(props: Props) {
         disabled={isDisabled}
       />
       <Divider />
+      <RecipeForm
+        steps={pipe(
+          props.ingredient,
+          option.chain(({ recipe }) => recipe),
+          option.map(nonEmptyArray.map(({ step }) => step)),
+        )}
+        onChange={onRecipeChange}
+      />
       {pipe(
         status,
         foldCommand(

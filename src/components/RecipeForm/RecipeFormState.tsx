@@ -4,10 +4,9 @@ import { Reader } from 'fp-ts/Reader'
 import { NonEmptyArray } from 'fp-ts/NonEmptyArray'
 import { Option } from 'fp-ts/Option'
 import { NonEmptyString } from 'io-ts-types'
-import { Cocktail } from '../../globalDomain'
 import { Eq } from 'fp-ts/Eq'
 
-type Steps = Option<NonEmptyArray<NonEmptyString>>
+export type Steps = Option<NonEmptyArray<NonEmptyString>>
 
 const eqSteps: Eq<Steps> = option.getEq(nonEmptyArray.getEq(string.Eq))
 
@@ -25,19 +24,8 @@ function defaultState(steps: Steps = option.none): DefaultState {
   return { type: 'DEFAULT', steps }
 }
 
-export function stateFromCocktail(cocktail: Option<Cocktail>): DefaultState {
-  return defaultState(
-    pipe(
-      cocktail,
-      option.chain(cocktail =>
-        pipe(
-          cocktail.recipe,
-          nonEmptyArray.fromArray,
-          option.map(nonEmptyArray.map(({ step }) => step)),
-        ),
-      ),
-    ),
-  )
+export function stateFromSteps(steps: Steps): DefaultState {
+  return defaultState(steps)
 }
 
 interface AddingState {

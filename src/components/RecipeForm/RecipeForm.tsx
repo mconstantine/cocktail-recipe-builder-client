@@ -14,10 +14,8 @@ import { Box } from '@mui/system'
 import { either, option } from 'fp-ts'
 import { constNull, constVoid, flow, pipe } from 'fp-ts/function'
 import { Reader } from 'fp-ts/Reader'
-import { Option } from 'fp-ts/Option'
 import { NonEmptyString } from 'io-ts-types'
 import { useEffect, useReducer } from 'react'
-import { Cocktail } from '../../globalDomain'
 import {
   addStep,
   cancel,
@@ -29,23 +27,19 @@ import {
   newStep,
   reducer,
   saveStep,
-  stateFromCocktail,
+  stateFromSteps,
+  Steps,
   updateStepInput,
-} from './CocktailRecipeFormState'
-import { NonEmptyArray } from 'fp-ts/NonEmptyArray'
+} from './RecipeFormState'
 import { usePrevious } from '../../hooks/usePrevious'
 
 interface Props {
-  cocktail: Option<Cocktail>
-  onChange: Reader<Option<NonEmptyArray<NonEmptyString>>, unknown>
+  steps: Steps
+  onChange: Reader<Steps, unknown>
 }
 
-export function CocktailRecipeForm(props: Props) {
-  const [state, dispatch] = useReducer(
-    reducer,
-    stateFromCocktail(props.cocktail),
-  )
-
+export function RecipeForm(props: Props) {
+  const [state, dispatch] = useReducer(reducer, stateFromSteps(props.steps))
   const previousState = usePrevious(state)
   const { onChange } = props
 
