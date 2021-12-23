@@ -4,10 +4,10 @@ import { Option } from 'fp-ts/Option'
 import { Reader } from 'fp-ts/Reader'
 import {
   CocktailIngredient,
-  Ingredient,
   VolumeUnit,
   NonNegative,
   NonNegativeInteger,
+  IngredientWithoutIngredients,
 } from '../../globalDomain'
 import { option } from 'fp-ts'
 
@@ -21,7 +21,7 @@ function readyState(): ReadyState {
 
 interface AddingState {
   type: 'ADDING'
-  ingredient: Option<Ingredient>
+  ingredient: Option<IngredientWithoutIngredients>
   amount: Option<NonNegative>
   unit: Option<VolumeUnit>
   after_technique: boolean
@@ -37,7 +37,7 @@ function addingState(data: Omit<AddingState, 'type'>): AddingState {
 interface EditingState {
   type: 'EDITING'
   originalIngredientIndex: NonNegativeInteger
-  ingredient: Option<Ingredient>
+  ingredient: Option<IngredientWithoutIngredients>
   amount: Option<NonNegative>
   unit: Option<VolumeUnit>
   after_technique: boolean
@@ -51,7 +51,7 @@ function editingState(data: Omit<EditingState, 'type'>): EditingState {
 }
 
 interface ValidAddingState {
-  ingredient: Ingredient
+  ingredient: IngredientWithoutIngredients
   amount: NonNegative
   unit: VolumeUnit
   after_technique: boolean
@@ -143,11 +143,11 @@ export function close(): CloseAction {
 
 interface UpdateIngredientAction {
   type: 'UPDATE_INGREDIENT'
-  ingredient: Ingredient
+  ingredient: IngredientWithoutIngredients
 }
 
 export function updateIngredientAction(
-  ingredient: Ingredient,
+  ingredient: IngredientWithoutIngredients,
 ): UpdateIngredientAction {
   return { type: 'UPDATE_INGREDIENT', ingredient }
 }

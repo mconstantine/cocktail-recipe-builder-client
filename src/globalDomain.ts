@@ -108,11 +108,6 @@ const WeightUnitName = t.keyof(
   'WeightUnitName',
 )
 
-// export const IngredientIngredientUnitName = t.intersection([
-//   IngredientUnitName,
-
-// ])
-
 const PercentageUnit = t.intersection(
   [
     UnitCommonData,
@@ -137,7 +132,7 @@ export const VolumeUnit = t.intersection(
 )
 export type VolumeUnit = t.TypeOf<typeof VolumeUnit>
 
-export const WeightUnit = t.intersection(
+const WeightUnit = t.intersection(
   [
     UnitCommonData,
     t.type({
@@ -148,7 +143,6 @@ export const WeightUnit = t.intersection(
   ],
   'WeightUnit',
 )
-export type WeightUnit = t.TypeOf<typeof WeightUnit>
 
 export const RangeUnit = t.intersection(
   [
@@ -203,31 +197,57 @@ export const Range = t.type(
   'Range',
 )
 
-export const Ingredient = t.type(
+const RecipeStep = t.type({
+  index: NonNegativeInteger,
+  step: NonEmptyString,
+})
+
+export const IngredientWithoutIngredients = t.type(
   {
     id: PositiveInteger,
     name: NonEmptyString,
     ranges: t.array(Range, 'Ranges'),
   },
-  'Ingredient',
+  'IngredientWithoutIngredients',
 )
+export type IngredientWithoutIngredients = t.TypeOf<
+  typeof IngredientWithoutIngredients
+>
+
+export const IngredientUnit = t.union(
+  [VolumeUnit, WeightUnit],
+  'IngredientUnit',
+)
+export type IngredientUnit = t.TypeOf<typeof IngredientUnit>
+
+export const IngredientIngredient = t.type(
+  {
+    amount: NonNegative,
+    unit: IngredientUnit,
+    ingredient: IngredientWithoutIngredients,
+  },
+  'IngredientIngredient',
+)
+
+export const Ingredient = t.intersection([
+  IngredientWithoutIngredients,
+  t.type({
+    ingredients: t.array(IngredientIngredient, 'Ingredients'),
+    recipe: t.array(RecipeStep, 'Recipe'),
+  }),
+])
 export type Ingredient = t.TypeOf<typeof Ingredient>
 
 export const CocktailIngredient = t.type(
   {
     amount: NonNegative,
     unit: VolumeUnit,
-    ingredient: Ingredient,
+    ingredient: IngredientWithoutIngredients,
     after_technique: BooleanFromNumber,
   },
   'CocktailIngredient',
 )
 export type CocktailIngredient = t.TypeOf<typeof CocktailIngredient>
-
-const CocktailRecipeStep = t.type({
-  index: NonNegativeInteger,
-  step: NonEmptyString,
-})
 
 export const Cocktail = t.type(
   {
@@ -237,7 +257,7 @@ export const Cocktail = t.type(
     updated_at: DateFromISOString,
     technique: Technique,
     ingredients: t.array(CocktailIngredient, 'Ingredients'),
-    recipe: t.array(CocktailRecipeStep, 'Recipe'),
+    recipe: t.array(RecipeStep, 'Recipe'),
     garnish: optionFromNullable(NonEmptyString),
   },
   'Cocktail',
