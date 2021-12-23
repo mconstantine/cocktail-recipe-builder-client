@@ -99,7 +99,7 @@ export const VolumeUnitName = t.keyof(
 )
 export type VolumeUnitName = t.TypeOf<typeof VolumeUnitName>
 
-const WeightUnitName = t.keyof(
+export const WeightUnitName = t.keyof(
   {
     g: true,
     mg: true,
@@ -107,6 +107,7 @@ const WeightUnitName = t.keyof(
   },
   'WeightUnitName',
 )
+export type WeightUnitName = t.TypeOf<typeof WeightUnitName>
 
 const PercentageUnit = t.intersection(
   [
@@ -228,6 +229,7 @@ export const IngredientIngredient = t.type(
   },
   'IngredientIngredient',
 )
+export type IngredientIngredient = t.TypeOf<typeof IngredientIngredient>
 
 export const Ingredient = t.intersection([
   IngredientWithoutIngredients,

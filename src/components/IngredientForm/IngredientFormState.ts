@@ -1,15 +1,26 @@
-import { option } from 'fp-ts'
+import { nonEmptyArray, option } from 'fp-ts'
 import { pipe } from 'fp-ts/function'
 import { sequenceS } from 'fp-ts/Apply'
 import { Option } from 'fp-ts/Option'
 import { NonEmptyString } from 'io-ts-types'
-import { Ingredient, NonNegative, unsafeNonNegative } from '../../globalDomain'
+import {
+  Ingredient,
+  IngredientIngredient,
+  NonNegative,
+  unsafeNonNegative,
+  VolumeUnitName,
+  WeightUnitName,
+} from '../../globalDomain'
+import { NonEmptyArray } from 'fp-ts/NonEmptyArray'
+import { IngredientInput } from '../../pages/CreateIngredient/domain'
 
 export interface State {
   name: Option<NonEmptyString>
   abv: Option<NonNegative>
   sugar: Option<NonNegative>
   acid: Option<NonNegative>
+  ingredients: Option<NonEmptyArray<IngredientIngredient>>
+  recipe: Option<NonEmptyArray<NonEmptyString>>
 }
 
 export function emptyState(): State {
@@ -18,6 +29,8 @@ export function emptyState(): State {
     abv: option.some(unsafeNonNegative(0)),
     sugar: option.some(unsafeNonNegative(0)),
     acid: option.some(unsafeNonNegative(0)),
+    ingredients: option.none,
+    recipe: option.none,
   }
 }
 
@@ -37,6 +50,28 @@ export function ingredientToState(ingredient: Ingredient): State {
     abv: option.some(abvRange?.amount ?? unsafeNonNegative(0)),
     sugar: option.some(sugarRange?.amount ?? unsafeNonNegative(0)),
     acid: option.some(acidRange?.amount ?? unsafeNonNegative(0)),
+    ingredients: pipe(ingredient.ingredients, nonEmptyArray.fromArray),
+    recipe: pipe(
+      ingredient.recipe,
+      nonEmptyArray.fromArray,
+      option.map(nonEmptyArray.map(({ step }) => step)),
+    ),
+  }
+}
+
+export function stateToIngredientInput(state: ValidState): IngredientInput {
+  return {
+    ...state,
+    ingredients: pipe(
+      state.ingredients,
+      option.map(
+        nonEmptyArray.map(ingredient => ({
+          ...ingredient,
+          id: ingredient.ingredient.id,
+          unit: ingredient.unit.name as WeightUnitName | VolumeUnitName,
+        })),
+      ),
+    ),
   }
 }
 
@@ -45,11 +80,22 @@ interface ValidState {
   abv: NonNegative
   sugar: NonNegative
   acid: NonNegative
+  ingredients: Option<NonEmptyArray<IngredientIngredient>>
+  recipe: Option<NonEmptyArray<NonEmptyString>>
 }
 
 export function validateState(state: State): Option<ValidState> {
   const { name, abv, sugar, acid } = state
-  return pipe({ name, abv, sugar, acid }, sequenceS(option.Apply))
+
+  return pipe(
+    { name, abv, sugar, acid },
+    sequenceS(option.Apply),
+    option.map(options => ({
+      ...options,
+      ingredients: state.ingredients,
+      recipe: state.recipe,
+    })),
+  )
 }
 
 interface UpdateNameAction {

@@ -1,6 +1,17 @@
 import * as t from 'io-ts'
-import { NonEmptyString } from 'io-ts-types'
-import { NonNegative } from '../../globalDomain'
+import { nonEmptyArray, NonEmptyString, optionFromNullable } from 'io-ts-types'
+import {
+  NonNegative,
+  PositiveInteger,
+  VolumeUnitName,
+  WeightUnitName,
+} from '../../globalDomain'
+
+const IngredientIngredientInput = t.type({
+  id: PositiveInteger,
+  amount: NonNegative,
+  unit: t.union([VolumeUnitName, WeightUnitName], 'Unit'),
+})
 
 export const IngredientInput = t.type(
   {
@@ -8,6 +19,8 @@ export const IngredientInput = t.type(
     abv: NonNegative,
     sugar: NonNegative,
     acid: NonNegative,
+    ingredients: optionFromNullable(nonEmptyArray(IngredientIngredientInput)),
+    recipe: optionFromNullable(nonEmptyArray(NonEmptyString)),
   },
   'IngredientInput',
 )

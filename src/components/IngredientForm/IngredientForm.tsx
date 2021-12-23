@@ -21,6 +21,7 @@ import {
   emptyState,
   ingredientToState,
   reducer,
+  stateToIngredientInput,
   updateAbv,
   updateAcid,
   updateName,
@@ -54,7 +55,11 @@ export function IngredientForm(props: Props) {
   )
 
   const onSubmit = () =>
-    pipe(state, validateState, option.fold(constVoid, submit))
+    pipe(
+      state,
+      validateState,
+      option.fold(constVoid, flow(stateToIngredientInput, submit)),
+    )
 
   return (
     <Form
