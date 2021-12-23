@@ -46,6 +46,7 @@ export function stateFromCocktail(cocktail: Cocktail): State {
     ingredients: cocktail.ingredients,
     recipe: pipe(
       cocktail.recipe,
+      nonEmptyArray.fromArray,
       option.map(nonEmptyArray.map(({ step }) => step)),
     ),
     garnish: cocktail.garnish,

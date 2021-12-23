@@ -51,6 +51,7 @@ export function ingredientToState(ingredient: Ingredient): State {
     ingredients: pipe(ingredient.ingredients, nonEmptyArray.fromArray),
     recipe: pipe(
       ingredient.recipe,
+      nonEmptyArray.fromArray,
       option.map(nonEmptyArray.map(({ step }) => step)),
     ),
   }

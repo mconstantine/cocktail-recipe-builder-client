@@ -11,7 +11,7 @@ import {
   ListItemIcon,
 } from '@mui/material'
 import { Box } from '@mui/system'
-import { boolean, option } from 'fp-ts'
+import { boolean, nonEmptyArray, option } from 'fp-ts'
 import { constNull, constVoid, flow, pipe } from 'fp-ts/function'
 import { Option } from 'fp-ts/Option'
 import { useEffect, useMemo, useState } from 'react'
@@ -206,6 +206,7 @@ export function Cocktail() {
                         <Typography variant="h1">{cocktail.name}</Typography>
                         {pipe(
                           cocktail.recipe,
+                          nonEmptyArray.fromArray,
                           option.fold(
                             () => (
                               <Typography>

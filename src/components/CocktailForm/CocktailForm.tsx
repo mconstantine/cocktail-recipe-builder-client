@@ -135,7 +135,8 @@ export function CocktailForm(props: Props) {
         <RecipeForm
           steps={pipe(
             props.cocktail,
-            option.chain(({ recipe }) => recipe),
+            option.map(({ recipe }) => recipe),
+            option.chain(nonEmptyArray.fromArray),
             option.map(nonEmptyArray.map(({ step }) => step)),
           )}
           onChange={onRecipeChange}

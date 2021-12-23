@@ -132,7 +132,8 @@ export function IngredientForm(props: Props) {
       <RecipeForm
         steps={pipe(
           props.ingredient,
-          option.chain(({ recipe }) => recipe),
+          option.map(({ recipe }) => recipe),
+          option.chain(nonEmptyArray.fromArray),
           option.map(nonEmptyArray.map(({ step }) => step)),
         )}
         onChange={onRecipeChange}
