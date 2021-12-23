@@ -23,7 +23,7 @@ import { query } from '../../api/api'
 import { useGet } from '../../api/useApi'
 import {
   CocktailIngredient,
-  IngredientUnit,
+  VolumeUnit,
   NonNegative,
   unsafeNonNegative,
   unsafeNonNegativeInteger,
@@ -184,7 +184,7 @@ export function IngredientsForm(props: Props) {
       <Autocomplete
         options={pipe(
           units,
-          query.getOrElse(() => [] as IngredientUnit[]),
+          query.getOrElse(() => [] as VolumeUnit[]),
         )}
         getOptionLabel={({ unit }) => unit}
         renderInput={params => <TextField {...params} label="Unit" required />}

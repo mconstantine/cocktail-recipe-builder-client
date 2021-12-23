@@ -14,11 +14,7 @@ import { constVoid, pipe } from 'fp-ts/function'
 import { IO } from 'fp-ts/IO'
 import { Reader } from 'fp-ts/Reader'
 import { useState } from 'react'
-import {
-  CocktailIngredient,
-  IngredientUnit,
-  NonNegative,
-} from '../globalDomain'
+import { CocktailIngredient, VolumeUnit, NonNegative } from '../globalDomain'
 
 interface Props {
   ingredients: CocktailIngredient[]
@@ -157,7 +153,7 @@ function IngredientSlider(props: IngredientSliderProps) {
   )
 }
 
-function getMaximum(unit: IngredientUnit): number {
+function getMaximum(unit: VolumeUnit): number {
   switch (unit.unit) {
     case 'oz':
       return 5
@@ -174,7 +170,7 @@ function getMaximum(unit: IngredientUnit): number {
   }
 }
 
-function getStep(unit: IngredientUnit): number {
+function getStep(unit: VolumeUnit): number {
   switch (unit.unit) {
     case 'oz':
       return 0.25

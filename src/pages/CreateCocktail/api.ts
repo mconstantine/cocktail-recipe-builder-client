@@ -1,6 +1,6 @@
 import * as t from 'io-ts'
 import { makeGetRequest, makePostRequest } from '../../api/useApi'
-import { Technique, IngredientUnit, Cocktail } from '../../globalDomain'
+import { Technique, VolumeUnit, Cocktail } from '../../globalDomain'
 import { CocktailInput } from './domain'
 
 export const createCocktail = makePostRequest({
@@ -18,5 +18,5 @@ export const getTechniques = makeGetRequest({
 export const getUnits = makeGetRequest({
   url: '/cocktails/units',
   inputCodec: t.void,
-  outputCodec: t.array(IngredientUnit, 'IngredientUnits'),
+  outputCodec: t.array(VolumeUnit, 'VolumeUnits'),
 })

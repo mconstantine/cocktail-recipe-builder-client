@@ -18,7 +18,7 @@ import { Loading } from '../../components/Loading'
 import { useSetBreadcrumbs } from '../../contexts/BreadcrumbsContext'
 import { deleteIngredient, getIngredient, updateIngredient } from './api'
 import { Delete, Edit } from '@mui/icons-material'
-import { IngredientForm } from '../../components/IngredientForm'
+import { IngredientForm } from '../../components/IngredientForm/IngredientForm'
 import { useConfirmationDialog } from '../../hooks/useConfirmationDialog'
 import {
   deletingState,

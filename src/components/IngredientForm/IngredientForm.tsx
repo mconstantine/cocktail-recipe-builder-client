@@ -10,13 +10,13 @@ import {
 } from 'fp-ts/function'
 import { Option } from 'fp-ts/Option'
 import { useReducer } from 'react'
-import { IngredientInput } from '../pages/CreateIngredient/domain'
-import { Form } from './Form'
-import { PercentageField } from './PercentageField'
-import { CommandHookOutput, foldCommand } from '../api/useApi'
-import { ErrorAlert } from './ErrorAlert'
+import { IngredientInput } from '../../pages/CreateIngredient/domain'
+import { Form } from '../Form'
+import { PercentageField } from '../PercentageField'
+import { CommandHookOutput, foldCommand } from '../../api/useApi'
+import { ErrorAlert } from '../ErrorAlert'
 import { IO } from 'fp-ts/IO'
-import { Ingredient } from '../globalDomain'
+import { Ingredient } from '../../globalDomain'
 import {
   emptyState,
   ingredientToState,

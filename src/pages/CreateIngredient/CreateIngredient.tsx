@@ -2,7 +2,7 @@ import { Stack, Typography } from '@mui/material'
 import { option } from 'fp-ts'
 import { useNavigate } from 'react-router'
 import { usePost } from '../../api/useApi'
-import { IngredientForm } from '../../components/IngredientForm'
+import { IngredientForm } from '../../components/IngredientForm/IngredientForm'
 import { createIngredient } from './api'
 
 export function CreateIngredient() {

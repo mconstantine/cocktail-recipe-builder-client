@@ -1,12 +1,12 @@
 import * as t from 'io-ts'
 import { nonEmptyArray, NonEmptyString, optionFromNullable } from 'io-ts-types'
-import { IngredientUnitName, TechniqueCode } from '../../globalDomain'
+import { VolumeUnitName, TechniqueCode } from '../../globalDomain'
 
 export const CocktailIngredientInput = t.type(
   {
     id: t.number,
     amount: t.number,
-    unit: IngredientUnitName,
+    unit: VolumeUnitName,
     after_technique: t.boolean,
   },
   'CocktailIngredientInput',

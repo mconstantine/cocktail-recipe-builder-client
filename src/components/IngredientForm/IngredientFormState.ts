@@ -3,7 +3,7 @@ import { pipe } from 'fp-ts/function'
 import { sequenceS } from 'fp-ts/Apply'
 import { Option } from 'fp-ts/Option'
 import { NonEmptyString } from 'io-ts-types'
-import { Ingredient, NonNegative, unsafeNonNegative } from '../globalDomain'
+import { Ingredient, NonNegative, unsafeNonNegative } from '../../globalDomain'
 
 export interface State {
   name: Option<NonEmptyString>

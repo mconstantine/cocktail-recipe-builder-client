@@ -86,7 +86,7 @@ const UnitCommonData = t.type(
   'UnitCommonData',
 )
 
-export const IngredientUnitName = t.keyof(
+export const VolumeUnitName = t.keyof(
   {
     oz: true,
     ml: true,
@@ -95,9 +95,23 @@ export const IngredientUnitName = t.keyof(
     drop: true,
     tsp: true,
   },
-  'IngredientUnitName',
+  'VolumeUnitName',
 )
-export type IngredientUnitName = t.TypeOf<typeof IngredientUnitName>
+export type VolumeUnitName = t.TypeOf<typeof VolumeUnitName>
+
+const WeightUnitName = t.keyof(
+  {
+    g: true,
+    mg: true,
+    kg: true,
+  },
+  'WeightUnitName',
+)
+
+// export const IngredientIngredientUnitName = t.intersection([
+//   IngredientUnitName,
+
+// ])
 
 const PercentageUnit = t.intersection(
   [
@@ -110,27 +124,31 @@ const PercentageUnit = t.intersection(
   'PercentageUnit',
 )
 
-const VolumeUnit = t.intersection(
+export const VolumeUnit = t.intersection(
   [
     UnitCommonData,
     t.type({
       type: t.literal('VOLUME'),
       ml: NonNegative,
+      unit: VolumeUnitName,
     }),
   ],
   'VolumeUnit',
 )
+export type VolumeUnit = t.TypeOf<typeof VolumeUnit>
 
-export const IngredientUnit = t.intersection(
+export const WeightUnit = t.intersection(
   [
-    VolumeUnit,
+    UnitCommonData,
     t.type({
-      unit: IngredientUnitName,
+      type: t.literal('WEIGHT'),
+      ml: t.null,
+      unit: WeightUnitName,
     }),
   ],
-  'IngredientUnit',
+  'WeightUnit',
 )
-export type IngredientUnit = t.TypeOf<typeof IngredientUnit>
+export type WeightUnit = t.TypeOf<typeof WeightUnit>
 
 export const RangeUnit = t.intersection(
   [
@@ -146,7 +164,7 @@ export const MinMaxRange = t.type(
   {
     min: NonNegative,
     max: NonNegative,
-    unit: t.union([IngredientUnit, RangeUnit]),
+    unit: t.union([VolumeUnit, RangeUnit]),
   },
   'MinMaxRange',
 )
@@ -198,7 +216,7 @@ export type Ingredient = t.TypeOf<typeof Ingredient>
 export const CocktailIngredient = t.type(
   {
     amount: NonNegative,
-    unit: IngredientUnit,
+    unit: VolumeUnit,
     ingredient: Ingredient,
     after_technique: BooleanFromNumber,
   },
