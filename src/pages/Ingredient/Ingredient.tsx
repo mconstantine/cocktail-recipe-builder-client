@@ -8,7 +8,7 @@ import {
   Stack,
   Typography,
 } from '@mui/material'
-import { boolean, option } from 'fp-ts'
+import { boolean, nonEmptyArray, option } from 'fp-ts'
 import { constVoid, flow, pipe } from 'fp-ts/function'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
@@ -29,6 +29,9 @@ import {
 } from '../../common/EntityState'
 import { Option } from 'fp-ts/Option'
 import { Ingredient as IngredientCodec } from '../../globalDomain'
+import { TabBar } from '../../components/TabBar'
+import { ingredientRangesToString } from '../../utils/ingredientRangesToString'
+import { Box } from '@mui/system'
 
 export function Ingredient() {
   const navigate = useNavigate()
@@ -115,19 +118,81 @@ export function Ingredient() {
             ),
             Showing: () => (
               <>
-                <Stack>
-                  <Typography variant="h1">{ingredient.name}</Typography>
-                  <List>
-                    {ingredient.ranges.map(range => (
-                      <ListItem key={range.id}>
-                        <ListItemText
-                          primary={`${range.amount}${range.unit.unit}`}
-                          secondary={range.unit.name}
-                        />
-                      </ListItem>
-                    ))}
-                  </List>
-                </Stack>
+                <TabBar
+                  content={{
+                    Profile: (
+                      <Stack spacing={4}>
+                        <Typography variant="h1">{ingredient.name}</Typography>
+                        <List>
+                          {ingredient.ranges.map(range => (
+                            <ListItem key={range.id}>
+                              <ListItemText
+                                primary={`${range.amount}${range.unit.unit}`}
+                                secondary={range.unit.name}
+                              />
+                            </ListItem>
+                          ))}
+                        </List>
+                      </Stack>
+                    ),
+                    Recipe: (
+                      <Stack spacing={4}>
+                        <Typography variant="h1">{ingredient.name}</Typography>
+                        <Box>
+                          <Typography variant="h6">Ingredients</Typography>
+                          {pipe(
+                            ingredient.ingredients,
+                            nonEmptyArray.fromArray,
+                            option.fold(
+                              () => (
+                                <Typography>
+                                  There are no ingredients for this ingredient.
+                                </Typography>
+                              ),
+                              ingredients => (
+                                <List>
+                                  {ingredients.map(ingredient => (
+                                    <ListItem key={ingredient.ingredient.id}>
+                                      <ListItemText
+                                        primary={`${ingredient.amount} ${ingredient.unit.unit} ${ingredient.ingredient.name}`}
+                                        secondary={ingredientRangesToString(
+                                          ingredient.ingredient,
+                                        )}
+                                      />
+                                    </ListItem>
+                                  ))}
+                                </List>
+                              ),
+                            ),
+                          )}
+                        </Box>
+                        <Box>
+                          <Typography variant="h6">Recipe</Typography>
+                          {pipe(
+                            ingredient.recipe,
+                            nonEmptyArray.fromArray,
+                            option.fold(
+                              () => (
+                                <Typography>
+                                  There is no recipe for this ingredient.
+                                </Typography>
+                              ),
+                              ingredients => (
+                                <List>
+                                  {ingredients.map(step => (
+                                    <ListItem key={step.index}>
+                                      <ListItemText primary={step.step} />
+                                    </ListItem>
+                                  ))}
+                                </List>
+                              ),
+                            ),
+                          )}
+                        </Box>
+                      </Stack>
+                    ),
+                  }}
+                />
                 <SpeedDial
                   ariaLabel="actions"
                   icon={<SpeedDialIcon />}
