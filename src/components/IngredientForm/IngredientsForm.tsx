@@ -27,7 +27,7 @@ import {
   IngredientUnit,
 } from '../../globalDomain'
 import { useDebounce } from '../../hooks/useDebounce'
-import { getUnits } from '../../pages/CreateCocktail/api'
+import { getUnits } from '../../pages/CreateIngredient/api'
 import { getIngredients } from '../../pages/Ingredients/api'
 import {
   IngredientsInput,
