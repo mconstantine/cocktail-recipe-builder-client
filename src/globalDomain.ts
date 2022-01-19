@@ -8,6 +8,15 @@ import {
   optionFromNullable,
 } from 'io-ts-types'
 
+export function unsafeNonEmptyString(s: string): NonEmptyString {
+  return pipe(
+    NonEmptyString.decode(s),
+    either.fold(() => {
+      throw new Error(`Unsafe NonEmptyString failed: ${s}`)
+    }, identity),
+  )
+}
+
 interface NonNegativeBrand {
   readonly NonNegative: unique symbol
 }

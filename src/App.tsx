@@ -3,6 +3,7 @@ import { Header } from './components/Header'
 import { ThemeProvider, createTheme, responsiveFontSizes } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { BreadcrumbsProvider } from './contexts/BreadcrumbsContext'
+import { AccountProvider } from './contexts/AccountContext'
 
 export function App() {
   const shouldBeDark =
@@ -39,12 +40,14 @@ export function App() {
   )
 
   return (
-    <ThemeProvider theme={theme}>
-      <BreadcrumbsProvider>
-        <Header>
-          <Outlet />
-        </Header>
-      </BreadcrumbsProvider>
-    </ThemeProvider>
+    <AccountProvider>
+      <ThemeProvider theme={theme}>
+        <BreadcrumbsProvider>
+          <Header>
+            <Outlet />
+          </Header>
+        </BreadcrumbsProvider>
+      </ThemeProvider>
+    </AccountProvider>
   )
 }

@@ -32,6 +32,7 @@ import { Ingredient as IngredientCodec } from '../../globalDomain'
 import { TabBar } from '../../components/TabBar'
 import { ingredientRangesToString } from '../../utils/ingredientRangesToString'
 import { Box } from '@mui/system'
+import { useAccount } from '../../contexts/AccountContext'
 
 export function Ingredient() {
   const navigate = useNavigate()
@@ -48,13 +49,17 @@ export function Ingredient() {
     flow(option.some, setIngredient),
   )
 
-  const updateIngredientCommand = usePut(updateIngredient(id), ingredient => {
-    setState(showingState())
-    setIngredient(option.some(ingredient))
-  })
+  const { withLogin } = useAccount()
 
-  const [deleteStatus, deleteCommand] = useDelete(deleteIngredient(id), () =>
-    navigate('/ingredients'),
+  const updateIngredientCommand = withLogin(
+    usePut(updateIngredient(id), ingredient => {
+      setState(showingState())
+      setIngredient(option.some(ingredient))
+    }),
+  )
+
+  const [deleteStatus, deleteCommand] = withLogin(
+    useDelete(deleteIngredient(id), () => navigate('/ingredients')),
   )
 
   const [deleteDialog, openDeleteDialog] = useConfirmationDialog(

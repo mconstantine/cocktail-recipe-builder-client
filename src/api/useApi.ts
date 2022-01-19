@@ -2,12 +2,14 @@ import * as t from 'io-ts'
 import { TaskEither } from 'fp-ts/TaskEither'
 import { IO } from 'fp-ts/IO'
 import { Reader } from 'fp-ts/Reader'
-import { taskEither } from 'fp-ts'
+import { option, taskEither } from 'fp-ts'
 import { pipe, flow } from 'fp-ts/function'
 import { reportErrors } from './reportErrors'
 import { useEffect, useState } from 'react'
 import { query } from './api'
 import { Query } from './Query'
+import { NonEmptyString } from 'io-ts-types'
+import { Option } from 'fp-ts/Option'
 
 const API_URL = process.env['REACT_APP_API_URL']?.replace(/\/?$/, '')
 
@@ -78,6 +80,7 @@ export function makeDeleteRequest<I, II, O, OO>(
 
 function makeRequest<I, II, O, OO>(
   request: Request<I, II, O, OO>,
+  token: Option<NonEmptyString>,
   input?: I,
 ): TaskEither<Error, O> {
   const createQuery: IO<string> = () => {
@@ -125,8 +128,17 @@ function makeRequest<I, II, O, OO>(
         window.fetch(`${API_URL}${request.url}${query}`, {
           method: request.method,
           headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
+            ...{
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            ...pipe(
+              token,
+              option.fold(
+                () => ({}),
+                token => ({ Authorization: `Bearer ${token}` }),
+              ),
+            ),
           },
           body: pipe(
             request.method,
@@ -169,7 +181,7 @@ function useQuery<I, II, O, OO>(
 
   const makeSendRequest = (request: Request<I, II, O, OO>, input?: I) =>
     pipe(
-      makeRequest(request, input),
+      makeRequest(request, option.none, input),
       taskEither.bimap(
         flow(query.left, setQueryState),
         flow(query.right, setQueryState),
@@ -237,7 +249,7 @@ export function foldCommand<E, R>(
 
 export type CommandHookOutput<I> = [
   status: Command<Error>,
-  command: Reader<I, void>,
+  command: (input: I, token?: NonEmptyString) => void,
 ]
 
 function useCommand<I, II, O, OO>(
@@ -246,11 +258,11 @@ function useCommand<I, II, O, OO>(
 ): CommandHookOutput<I> {
   const [status, setStatus] = useState<Command<Error>>(readyCommand())
 
-  const command = (input: I) => {
+  const command = (input: I, token?: NonEmptyString) => {
     setStatus(loadingCommand())
 
     pipe(
-      makeRequest(request, input),
+      makeRequest(request, option.fromNullable(token), input),
       taskEither.bimap(flow(errorCommand, setStatus), data => {
         setStatus(readyCommand())
         onSuccess(data)
