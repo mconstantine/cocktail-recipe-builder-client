@@ -10,7 +10,8 @@ import { Box } from '@mui/system'
 import { option } from 'fp-ts'
 import { constNull, pipe } from 'fp-ts/function'
 import { Fragment, ReactElement } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { useAccount } from '../contexts/AccountContext'
 import { useRenderBreadcrumbs } from '../contexts/BreadcrumbsContext'
 
 interface Props {
@@ -19,6 +20,9 @@ interface Props {
 
 export function Header(props: Props) {
   const renderBreadcrumbs = useRenderBreadcrumbs()
+  const { login, isLoggedIn } = useAccount()
+  const navigate = useNavigate()
+  const doLogin = () => login(() => navigate('/profile'))
 
   return (
     <Fragment>
@@ -34,6 +38,15 @@ export function Header(props: Props) {
           <Button color="inherit">
             <Link to="/ingredients">Ingredients</Link>
           </Button>
+          {isLoggedIn ? (
+            <Button color="inherit">
+              <Link to="/profile">Profile</Link>
+            </Button>
+          ) : (
+            <Button color="inherit" onClick={doLogin}>
+              Login
+            </Button>
+          )}
         </Toolbar>
         {pipe(
           renderBreadcrumbs(),

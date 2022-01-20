@@ -40,10 +40,13 @@ import { option } from 'fp-ts'
 import { NonEmptyString } from 'io-ts-types'
 import { unsafeNonEmptyString } from '../globalDomain'
 import { useStorage } from './StorageContext'
+import { Reader } from 'fp-ts/Reader'
 
 interface AccountContext {
+  login: Reader<IO<void>, void>
   withLogin: <I>(command: CommandHookOutput<I>) => CommandHookOutput<I>
   logout: IO<void>
+  isLoggedIn: boolean
 }
 
 const LoginInput = t.type(
@@ -69,8 +72,10 @@ const loginCommand = makePostRequest({
 })
 
 const AccountContext = createContext<AccountContext>({
+  login: constVoid,
   withLogin: identity,
   logout: constVoid,
+  isLoggedIn: false,
 })
 
 export function useAccount() {
@@ -79,9 +84,13 @@ export function useAccount() {
 
 export function AccountProvider(props: PropsWithChildren<{}>) {
   const [state, dispatch] = useReducer(reducer, { type: 'ANONYMOUS' })
-  const logout = () => dispatch(logoutAction())
   const cancelLogin = () => dispatch(cancelAction())
-  const { getStorageValue, setStorageValue } = useStorage()
+  const { getStorageValue, setStorageValue, removeStorageValue } = useStorage()
+
+  const logout = () => {
+    removeStorageValue('loginToken')
+    dispatch(logoutAction())
+  }
 
   const [loginStatus, loginRequest] = usePost(loginCommand, response =>
     dispatch(setLoginAction(response.token)),
@@ -123,6 +132,11 @@ export function AccountProvider(props: PropsWithChildren<{}>) {
       }),
     )
 
+  const isLoggedIn = state.type === 'LOGGED_IN'
+
+  const loginStandalone = (callback: IO<void>) =>
+    dispatch(beginLoginAction(callback, null))
+
   useEffect(() => {
     pipe(
       loginStatus,
@@ -163,7 +177,9 @@ export function AccountProvider(props: PropsWithChildren<{}>) {
 
   return (
     <>
-      <AccountContext.Provider value={{ withLogin, logout }}>
+      <AccountContext.Provider
+        value={{ login: loginStandalone, withLogin, logout, isLoggedIn }}
+      >
         {props.children}
       </AccountContext.Provider>
       {pipe(
