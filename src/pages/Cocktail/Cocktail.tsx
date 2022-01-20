@@ -30,6 +30,7 @@ import { ErrorAlert } from '../../components/ErrorAlert'
 import { Loading } from '../../components/Loading'
 import { ProfileGraph } from '../../components/ProfileGraph/ProfileGraph'
 import { TabBar } from '../../components/TabBar'
+import { useAccount } from '../../contexts/AccountContext'
 import {
   Breadcrumb,
   useSetBreadcrumbs,
@@ -45,22 +46,24 @@ export function Cocktail() {
   const params = useParams()
   const id = parseInt(params.id!)
   const [state, setState] = useState<State>(showingState())
-
   const [cocktail, setCocktail] = useState<Option<CocktailCodec>>(option.none)
+  const { withLogin } = useAccount()
 
   const [, fetchCocktail] = useLazyGet(
     getCocktail(id),
     flow(option.some, setCocktail),
   )
 
-  const [deleteStatus, deleteCommand] = useDelete(deleteCocktail(id), () =>
-    navigate('/cocktails'),
+  const [deleteStatus, deleteCommand] = withLogin(
+    useDelete(deleteCocktail(id), () => navigate('/cocktails')),
   )
 
-  const updateCocktailCommand = usePut(updateCocktail(id), cocktail => {
-    setState(showingState())
-    setCocktail(option.some(cocktail))
-  })
+  const updateCocktailCommand = withLogin(
+    usePut(updateCocktail(id), cocktail => {
+      setState(showingState())
+      setCocktail(option.some(cocktail))
+    }),
+  )
 
   const [deleteDialog, openDeleteDialog] = useConfirmationDialog(
     'Are you sure?',

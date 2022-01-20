@@ -3,14 +3,16 @@ import { option } from 'fp-ts'
 import { useNavigate } from 'react-router'
 import { usePost } from '../../api/useApi'
 import { CocktailForm } from '../../components/CocktailForm/CocktailForm'
+import { useAccount } from '../../contexts/AccountContext'
 import { createCocktail } from './api'
 
 export function CreateCocktail() {
   const navigate = useNavigate()
   const onCancel = () => navigate('/cocktails')
+  const { withLogin } = useAccount()
 
-  const command = usePost(createCocktail, ({ id }) =>
-    navigate(`/cocktails/${id}`),
+  const command = withLogin(
+    usePost(createCocktail, ({ id }) => navigate(`/cocktails/${id}`)),
   )
 
   return (
