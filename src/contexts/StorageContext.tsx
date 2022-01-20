@@ -21,11 +21,13 @@ interface StorageContext {
     input: K,
     value: StorageMap[K],
   ) => void
+  removeStorageValue: <K extends keyof StorageMap>(input: K) => void
 }
 
 const StorageContext = createContext<StorageContext>({
   getStorageValue: () => option.none,
   setStorageValue: constVoid,
+  removeStorageValue: constVoid,
 })
 
 export function useStorage() {
@@ -34,24 +36,32 @@ export function useStorage() {
 
 export function StorageProvider(props: PropsWithChildren<{}>) {
   const setStorageValue = function set<K extends keyof StorageMap>(
-    input: K,
+    key: K,
     value: StorageMap[K],
   ): void {
-    window.localStorage.setItem(input, JSON.stringify(value))
+    window.localStorage.setItem(key, JSON.stringify(value))
   }
 
   const getStorageValue = function get<K extends keyof StorageMap>(
-    input: K,
+    key: K,
   ): Option<StorageMap[K]> {
     return pipe(
-      window.localStorage.getItem(input),
+      window.localStorage.getItem(key),
       option.fromNullable,
       option.chain(value => option.tryCatch(() => JSON.parse(value))),
     )
   }
 
+  const removeStorageValue = function remove<K extends keyof StorageMap>(
+    key: K,
+  ): void {
+    window.localStorage.removeItem(key)
+  }
+
   return (
-    <StorageContext.Provider value={{ getStorageValue, setStorageValue }}>
+    <StorageContext.Provider
+      value={{ getStorageValue, setStorageValue, removeStorageValue }}
+    >
       {props.children}
     </StorageContext.Provider>
   )
