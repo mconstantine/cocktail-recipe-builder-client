@@ -178,9 +178,13 @@ export function reducer(
             password: option.none,
             error: option.none,
           }
+        case 'SET_LOGIN':
+          return {
+            type: 'LOGGED_IN',
+            token: action.token,
+          }
         case 'UPDATE_EMAIL':
         case 'UPDATE_PASSWORD':
-        case 'SET_LOGIN':
         case 'LOGOUT':
         case 'CANCEL':
         case 'SET_ERROR':

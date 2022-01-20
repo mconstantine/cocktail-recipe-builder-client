@@ -39,6 +39,7 @@ import {
 import { option } from 'fp-ts'
 import { NonEmptyString } from 'io-ts-types'
 import { unsafeNonEmptyString } from '../globalDomain'
+import { useStorage } from './StorageContext'
 
 interface AccountContext {
   withLogin: <I>(command: CommandHookOutput<I>) => CommandHookOutput<I>
@@ -80,6 +81,7 @@ export function AccountProvider(props: PropsWithChildren<{}>) {
   const [state, dispatch] = useReducer(reducer, { type: 'ANONYMOUS' })
   const logout = () => dispatch(logoutAction())
   const cancelLogin = () => dispatch(cancelAction())
+  const { getStorageValue, setStorageValue } = useStorage()
 
   const [loginStatus, loginRequest] = usePost(loginCommand, response =>
     dispatch(setLoginAction(response.token)),
@@ -142,6 +144,7 @@ export function AccountProvider(props: PropsWithChildren<{}>) {
               LOGGING_IN: constVoid,
               LOGGED_IN: constVoid,
               PENDING_REQUEST: state => {
+                setStorageValue('loginToken', state.token)
                 state.pendingRequest(state.pendingRequestInput, state.token)
                 dispatch(setPendingRequestSentAction())
               },
@@ -149,7 +152,14 @@ export function AccountProvider(props: PropsWithChildren<{}>) {
           ),
       ),
     )
-  }, [loginStatus, state])
+  }, [loginStatus, state, setStorageValue])
+
+  useEffect(() => {
+    pipe(
+      getStorageValue('loginToken'),
+      option.fold(constVoid, token => dispatch(setLoginAction(token))),
+    )
+  }, [getStorageValue])
 
   return (
     <>

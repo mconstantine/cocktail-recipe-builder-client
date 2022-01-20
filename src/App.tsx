@@ -4,6 +4,7 @@ import { ThemeProvider, createTheme, responsiveFontSizes } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { BreadcrumbsProvider } from './contexts/BreadcrumbsContext'
 import { AccountProvider } from './contexts/AccountContext'
+import { StorageProvider } from './contexts/StorageContext'
 
 export function App() {
   const shouldBeDark =
@@ -40,14 +41,16 @@ export function App() {
   )
 
   return (
-    <AccountProvider>
-      <ThemeProvider theme={theme}>
-        <BreadcrumbsProvider>
-          <Header>
-            <Outlet />
-          </Header>
-        </BreadcrumbsProvider>
-      </ThemeProvider>
-    </AccountProvider>
+    <StorageProvider>
+      <AccountProvider>
+        <ThemeProvider theme={theme}>
+          <BreadcrumbsProvider>
+            <Header>
+              <Outlet />
+            </Header>
+          </BreadcrumbsProvider>
+        </ThemeProvider>
+      </AccountProvider>
+    </StorageProvider>
   )
 }
