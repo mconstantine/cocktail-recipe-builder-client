@@ -9,7 +9,12 @@ import {
 } from 'fp-ts/function'
 import { Option } from 'fp-ts/Option'
 import { useReducer } from 'react'
-import { CommandHookOutput, foldCommand, useGet } from '../../api/useApi'
+import {
+  CommandHookOutput,
+  foldCommand,
+  HandledResponseError,
+  useGet,
+} from '../../api/useApi'
 import { Cocktail, CocktailIngredient, Technique } from '../../globalDomain'
 import { Form } from '../Form'
 import { nonEmptyArray, option } from 'fp-ts'
@@ -88,6 +93,7 @@ export function CocktailForm(props: Props) {
     status,
     foldCommand(constTrue, constFalse, constFalse),
   )
+
   return pipe(
     sequenceS(query.Apply)({ techniques, units }),
     query.map(({ techniques }) => (
@@ -159,6 +165,6 @@ export function CocktailForm(props: Props) {
         )}
       </Form>
     )),
-    query.getOrElse<Error, JSX.Element | null>(constNull),
+    query.getOrElse<HandledResponseError, JSX.Element | null>(constNull),
   )
 }

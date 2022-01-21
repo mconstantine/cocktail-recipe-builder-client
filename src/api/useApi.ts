@@ -10,6 +10,8 @@ import { query } from './api'
 import { Query } from './Query'
 import { NonEmptyString } from 'io-ts-types'
 import { Option } from 'fp-ts/Option'
+import { KnownErrorCode, ResponseError } from './apiDomain'
+import { unsafeNonEmptyString } from '../globalDomain'
 
 const API_URL = process.env['REACT_APP_API_URL']?.replace(/\/?$/, '')
 
@@ -78,11 +80,15 @@ export function makeDeleteRequest<I, II, O, OO>(
   return { ...request, method: 'DELETE' }
 }
 
+export interface HandledResponseError extends ResponseError {
+  code: KnownErrorCode
+}
+
 function makeRequest<I, II, O, OO>(
   request: Request<I, II, O, OO>,
   token: Option<NonEmptyString>,
   input?: I,
-): TaskEither<Error, O> {
+): TaskEither<HandledResponseError, O> {
   const createQuery: IO<string> = () => {
     if (input === undefined) {
       return ''
@@ -150,12 +156,69 @@ function makeRequest<I, II, O, OO>(
             }),
           ),
         }),
-      error => error as Error,
+      (error): HandledResponseError => {
+        console.log(error)
+
+        return {
+          code: 500,
+          errors: [
+            {
+              message: unsafeNonEmptyString('Unable to fetch data'),
+            },
+          ],
+        }
+      },
     ),
     taskEither.chain(response =>
-      taskEither.tryCatch(
-        () => response.json(),
-        error => error as Error,
+      pipe(
+        taskEither.tryCatch(
+          () => response.json(),
+          (error): HandledResponseError => {
+            console.log(error)
+
+            return {
+              code: 500,
+              errors: [
+                {
+                  message: unsafeNonEmptyString(
+                    'Unable to parse response to JSON',
+                  ),
+                },
+              ],
+            }
+          },
+        ),
+        taskEither.chain(data => {
+          if (
+            Object.keys(KnownErrorCode.keys).includes(
+              response.status.toString(),
+            )
+          ) {
+            return pipe(
+              ResponseError.decode(data),
+              taskEither.fromEither,
+              taskEither.bimap(
+                (): HandledResponseError => ({
+                  code: 500,
+                  errors: [
+                    {
+                      message: unsafeNonEmptyString(
+                        'Unable to decode error response',
+                      ),
+                    },
+                  ],
+                }),
+                ({ errors }): HandledResponseError => ({
+                  code: response.status as KnownErrorCode,
+                  errors,
+                }),
+              ),
+              taskEither.chain(taskEither.left),
+            )
+          }
+
+          return taskEither.right(data)
+        }),
       ),
     ),
     taskEither.chain(
@@ -163,21 +226,35 @@ function makeRequest<I, II, O, OO>(
         request.outputCodec.decode,
         reportErrors,
         taskEither.fromEither,
-        taskEither.mapLeft(() => {
-          return new Error(`Decoding error from ${request.url}`)
-        }),
+        taskEither.mapLeft(
+          (): HandledResponseError => ({
+            code: 500,
+            errors: [
+              {
+                message: unsafeNonEmptyString(
+                  `Decoding error from ${request.url}`,
+                ),
+              },
+            ],
+          }),
+        ),
       ),
     ),
   )
 }
 
-export type QueryHookOutput<T> = [query: Query<Error, T>, reload: IO<void>]
+export type QueryHookOutput<T> = [
+  query: Query<HandledResponseError, T>,
+  reload: IO<void>,
+]
 
 function useQuery<I, II, O, OO>(
   request: Request<I, II, O, OO>,
   input?: I,
 ): QueryHookOutput<O> {
-  const [queryState, setQueryState] = useState<Query<Error, O>>(query.loading())
+  const [queryState, setQueryState] = useState<Query<HandledResponseError, O>>(
+    query.loading(),
+  )
 
   const makeSendRequest = (request: Request<I, II, O, OO>, input?: I) =>
     pipe(
@@ -248,7 +325,7 @@ export function foldCommand<E, R>(
 }
 
 export type CommandHookOutput<I> = [
-  status: Command<Error>,
+  status: Command<HandledResponseError>,
   command: (input: I, token?: NonEmptyString) => void,
 ]
 
@@ -256,7 +333,9 @@ function useCommand<I, II, O, OO>(
   request: Request<I, II, O, OO>,
   onSuccess: Reader<O, unknown>,
 ): CommandHookOutput<I> {
-  const [status, setStatus] = useState<Command<Error>>(readyCommand())
+  const [status, setStatus] = useState<Command<HandledResponseError>>(
+    readyCommand(),
+  )
 
   const command = (input: I, token?: NonEmptyString) => {
     setStatus(loadingCommand())

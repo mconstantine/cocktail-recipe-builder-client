@@ -1,5 +1,5 @@
 import * as t from 'io-ts'
-import { optionFromNullable } from 'io-ts-types'
+import { NonEmptyString, optionFromNullable } from 'io-ts-types'
 
 export const PaginationInput = t.type(
   {
@@ -34,3 +34,24 @@ export function PaginationOutput<C extends t.Mixed>(codec: C) {
     `PaginationOutput<${codec.name}>`,
   )
 }
+
+export const KnownErrorCode = t.keyof({
+  401: true,
+  500: true,
+})
+export type KnownErrorCode = t.TypeOf<typeof KnownErrorCode>
+
+const ApiError = t.type(
+  {
+    message: NonEmptyString,
+  },
+  'ApiError',
+)
+
+export const ResponseError = t.type(
+  {
+    errors: t.array(ApiError, 'ApiErrors'),
+  },
+  'ResponseError',
+)
+export type ResponseError = t.TypeOf<typeof ResponseError>
