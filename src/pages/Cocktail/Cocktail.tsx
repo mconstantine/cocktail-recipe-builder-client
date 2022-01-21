@@ -47,18 +47,18 @@ export function Cocktail() {
   const id = parseInt(params.id!)
   const [state, setState] = useState<State>(showingState())
   const [cocktail, setCocktail] = useState<Option<CocktailCodec>>(option.none)
-  const { withLogin } = useAccount()
+  const { useLogin } = useAccount()
 
   const [, fetchCocktail] = useLazyGet(
     getCocktail(id),
     flow(option.some, setCocktail),
   )
 
-  const [deleteStatus, deleteCommand] = withLogin(
+  const [deleteStatus, deleteCommand] = useLogin(
     useDelete(deleteCocktail(id), () => navigate('/cocktails')),
   )
 
-  const updateCocktailCommand = withLogin(
+  const updateCocktailCommand = useLogin(
     usePut(updateCocktail(id), cocktail => {
       setState(showingState())
       setCocktail(option.some(cocktail))

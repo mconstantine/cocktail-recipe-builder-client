@@ -49,16 +49,16 @@ export function Ingredient() {
     flow(option.some, setIngredient),
   )
 
-  const { withLogin } = useAccount()
+  const { useLogin } = useAccount()
 
-  const updateIngredientCommand = withLogin(
+  const updateIngredientCommand = useLogin(
     usePut(updateIngredient(id), ingredient => {
       setState(showingState())
       setIngredient(option.some(ingredient))
     }),
   )
 
-  const [deleteStatus, deleteCommand] = withLogin(
+  const [deleteStatus, deleteCommand] = useLogin(
     useDelete(deleteIngredient(id), () => navigate('/ingredients')),
   )
 

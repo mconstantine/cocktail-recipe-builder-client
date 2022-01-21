@@ -7,7 +7,7 @@ import {
   Typography,
 } from '@mui/material'
 import { pipe } from 'fp-ts/function'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { foldCommand, usePost } from '../../api/useApi'
 import { ErrorAlert } from '../../components/ErrorAlert'
@@ -24,8 +24,24 @@ export function Profile() {
   */
 
   const navigate = useNavigate()
-  const { withLogin, logout, isLoggedIn } = useAccount()
-  const [logoutStatus, logoutRequest] = withLogin(usePost(logoutUser, logout))
+  const { useLogin, logout, isLoggedIn } = useAccount()
+
+  const [logoutStatus, sendLogoutRequest] = useLogin(
+    usePost(logoutUser, logout),
+  )
+
+  const [isLoggingOutFromEverywhere, setIsLoggingOutFromEverywhere] =
+    useState(false)
+
+  const doLogout = () => {
+    setIsLoggingOutFromEverywhere(false)
+    sendLogoutRequest({ logout_from_everywhere: false })
+  }
+
+  const doLogoutFromEverywhere = () => {
+    setIsLoggingOutFromEverywhere(true)
+    sendLogoutRequest({ logout_from_everywhere: true })
+  }
 
   useEffect(() => {
     if (!isLoggedIn) {
@@ -40,26 +56,25 @@ export function Profile() {
         logoutStatus,
         foldCommand(
           () => <Loading />,
-          error => {
-            console.log(error)
-            return (
-              <ErrorAlert
-                message="An error occurred while logging out."
-                onRetry={logoutRequest}
-              />
-            )
-          },
+          () => (
+            <ErrorAlert
+              message="An error occurred while logging out."
+              onRetry={() =>
+                sendLogoutRequest({
+                  logout_from_everywhere: isLoggingOutFromEverywhere,
+                })
+              }
+            />
+          ),
           () => (
             <List>
               <ListItem>
-                <ListItemButton onClick={() => logoutRequest()}>
+                <ListItemButton onClick={doLogout}>
                   <ListItemText>Logout</ListItemText>
                 </ListItemButton>
               </ListItem>
               <ListItem>
-                <ListItemButton
-                  onClick={() => console.log('TODO: logout from everywhere')}
-                >
+                <ListItemButton onClick={doLogoutFromEverywhere}>
                   <ListItemText>Logout from everywhere</ListItemText>
                 </ListItemButton>
               </ListItem>

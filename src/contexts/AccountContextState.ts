@@ -9,25 +9,29 @@ interface AnonymousState {
   type: 'ANONYMOUS'
 }
 
+interface PendingRequest<I> {
+  request: (input: I, token?: NonEmptyString) => void
+  input: I
+}
+
 interface LoggingInState {
   type: 'LOGGING_IN'
   email: Option<NonEmptyString>
   password: Option<NonEmptyString>
-  pendingRequest: (input: any, token?: NonEmptyString) => void
-  pendingRequestInput: any
+  pendingRequest: PendingRequest<any>
   error: Option<NonEmptyString>
 }
 
 interface PendingRequestState {
   type: 'PENDING_REQUEST'
-  pendingRequest: (input: any, token?: NonEmptyString) => void
-  pendingRequestInput: any
+  pendingRequest: PendingRequest<any>
   token: NonEmptyString
 }
 
 interface LoggedInState {
   type: 'LOGGED_IN'
   token: NonEmptyString
+  lastRequest: Option<PendingRequest<any>>
 }
 
 type AccountState =
@@ -63,8 +67,7 @@ export function validateLoggingInState(
 
 interface BeginLoginAction {
   type: 'BEGIN_LOGIN'
-  pendingRequest: Reader<any, void>
-  pendingRequestInput: any
+  pendingRequest: PendingRequest<any>
 }
 
 export function beginLoginAction<I>(
@@ -73,8 +76,10 @@ export function beginLoginAction<I>(
 ): BeginLoginAction {
   return {
     type: 'BEGIN_LOGIN',
-    pendingRequest,
-    pendingRequestInput,
+    pendingRequest: {
+      request: pendingRequest,
+      input: pendingRequestInput,
+    },
   }
 }
 
@@ -152,6 +157,24 @@ export function cancelAction(): CancelAction {
   return { type: 'CANCEL' }
 }
 
+interface UpdateLastRequestAction {
+  type: 'UPDATE_LAST_REQUEST'
+  lastRequest: PendingRequest<any>
+}
+
+export function updateLastRequestAction<I>(
+  lastRequest: Reader<I, void>,
+  input: I,
+): UpdateLastRequestAction {
+  return {
+    type: 'UPDATE_LAST_REQUEST',
+    lastRequest: {
+      request: lastRequest,
+      input,
+    },
+  }
+}
+
 type AccountAction =
   | BeginLoginAction
   | UpdateEmailAction
@@ -161,6 +184,7 @@ type AccountAction =
   | CancelAction
   | SetErrorAction
   | SetPendingRequestSentAction
+  | UpdateLastRequestAction
 
 export function reducer(
   state: AccountState,
@@ -173,7 +197,6 @@ export function reducer(
           return {
             type: 'LOGGING_IN',
             pendingRequest: action.pendingRequest,
-            pendingRequestInput: action.pendingRequestInput,
             email: option.none,
             password: option.none,
             error: option.none,
@@ -182,6 +205,7 @@ export function reducer(
           return {
             type: 'LOGGED_IN',
             token: action.token,
+            lastRequest: option.none,
           }
         case 'UPDATE_EMAIL':
         case 'UPDATE_PASSWORD':
@@ -189,6 +213,7 @@ export function reducer(
         case 'CANCEL':
         case 'SET_ERROR':
         case 'SET_PENDING_REQUEST_SENT':
+        case 'UPDATE_LAST_REQUEST':
           return state
       }
     case 'LOGGING_IN':
@@ -213,7 +238,6 @@ export function reducer(
           return {
             type: 'PENDING_REQUEST',
             pendingRequest: state.pendingRequest,
-            pendingRequestInput: state.pendingRequestInput,
             token: action.token,
           }
         case 'SET_ERROR':
@@ -226,6 +250,7 @@ export function reducer(
         case 'BEGIN_LOGIN':
         case 'LOGOUT':
         case 'SET_PENDING_REQUEST_SENT':
+        case 'UPDATE_LAST_REQUEST':
           return state
       }
     case 'PENDING_REQUEST':
@@ -234,6 +259,7 @@ export function reducer(
           return {
             type: 'LOGGED_IN',
             token: state.token,
+            lastRequest: option.some(state.pendingRequest),
           }
         case 'BEGIN_LOGIN':
         case 'UPDATE_EMAIL':
@@ -242,13 +268,26 @@ export function reducer(
         case 'LOGOUT':
         case 'SET_LOGIN':
         case 'CANCEL':
+        case 'UPDATE_LAST_REQUEST':
           return state
       }
     case 'LOGGED_IN':
       switch (action.type) {
         case 'LOGOUT':
           return { type: 'ANONYMOUS' }
+        case 'UPDATE_LAST_REQUEST':
+          return {
+            ...state,
+            lastRequest: option.some(action.lastRequest),
+          }
         case 'BEGIN_LOGIN':
+          return {
+            type: 'LOGGING_IN',
+            pendingRequest: action.pendingRequest,
+            email: option.none,
+            password: option.none,
+            error: option.none,
+          }
         case 'UPDATE_EMAIL':
         case 'UPDATE_PASSWORD':
         case 'SET_LOGIN':

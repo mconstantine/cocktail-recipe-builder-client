@@ -1,6 +1,14 @@
 import * as t from 'io-ts'
 import { IO } from 'fp-ts/IO'
-import { constNull, constVoid, flow, identity, pipe } from 'fp-ts/function'
+import {
+  constFalse,
+  constNull,
+  constTrue,
+  constVoid,
+  flow,
+  identity,
+  pipe,
+} from 'fp-ts/function'
 import {
   createContext,
   PropsWithChildren,
@@ -33,6 +41,7 @@ import {
   setLoginAction,
   setPendingRequestSentAction,
   updateEmailAction,
+  updateLastRequestAction,
   updatePasswordAction,
   validateLoggingInState,
 } from './AccountContextState'
@@ -44,7 +53,7 @@ import { Reader } from 'fp-ts/Reader'
 
 interface AccountContext {
   login: Reader<IO<void>, void>
-  withLogin: <I>(command: CommandHookOutput<I>) => CommandHookOutput<I>
+  useLogin: <I>(command: CommandHookOutput<I>) => CommandHookOutput<I>
   logout: IO<void>
   isLoggedIn: boolean
 }
@@ -73,7 +82,7 @@ const loginCommand = makePostRequest({
 
 const AccountContext = createContext<AccountContext>({
   login: constVoid,
-  withLogin: identity,
+  useLogin: identity,
   logout: constVoid,
   isLoggedIn: false,
 })
@@ -96,10 +105,32 @@ export function AccountProvider(props: PropsWithChildren<{}>) {
     dispatch(setLoginAction(response.token)),
   )
 
-  const withLogin = function withLogin<I>(
+  const useLogin = function useLogin<I>(
     command: CommandHookOutput<I>,
   ): CommandHookOutput<I> {
     const [status, request] = command
+
+    useEffect(() => {
+      if (status.type === 'ERROR' && status.error.code === 401) {
+        pipe(
+          state,
+          foldAccountState({
+            ANONYMOUS: constVoid,
+            LOGGING_IN: constVoid,
+            PENDING_REQUEST: constVoid,
+            LOGGED_IN: state =>
+              pipe(
+                state.lastRequest,
+                option.fold(constVoid, lastRequest =>
+                  dispatch(
+                    beginLoginAction(lastRequest.request, lastRequest.input),
+                  ),
+                ),
+              ),
+          }),
+        )
+      }
+    }, [status])
 
     return [
       status,
@@ -110,7 +141,10 @@ export function AccountProvider(props: PropsWithChildren<{}>) {
             ANONYMOUS: () => dispatch(beginLoginAction(request, input)),
             LOGGING_IN: constVoid,
             PENDING_REQUEST: constVoid,
-            LOGGED_IN: state => request(input, state.token),
+            LOGGED_IN: state => {
+              dispatch(updateLastRequestAction(request, input))
+              request(input, state.token)
+            },
           }),
         ),
     ]
@@ -137,6 +171,17 @@ export function AccountProvider(props: PropsWithChildren<{}>) {
   const loginStandalone = (callback: IO<void>) =>
     dispatch(beginLoginAction(callback, null))
 
+  const isUIDisabled = pipe(
+    state,
+    foldAccountState({
+      ANONYMOUS: constTrue,
+      LOGGED_IN: constTrue,
+      PENDING_REQUEST: constTrue,
+      LOGGING_IN: () =>
+        pipe(loginStatus, foldCommand(constTrue, constFalse, constFalse)),
+    }),
+  )
+
   useEffect(() => {
     pipe(
       loginStatus,
@@ -159,7 +204,12 @@ export function AccountProvider(props: PropsWithChildren<{}>) {
               LOGGED_IN: constVoid,
               PENDING_REQUEST: state => {
                 setStorageValue('loginToken', state.token)
-                state.pendingRequest(state.pendingRequestInput, state.token)
+
+                state.pendingRequest.request(
+                  state.pendingRequest.input,
+                  state.token,
+                )
+
                 dispatch(setPendingRequestSentAction())
               },
             }),
@@ -178,7 +228,7 @@ export function AccountProvider(props: PropsWithChildren<{}>) {
   return (
     <>
       <AccountContext.Provider
-        value={{ login: loginStandalone, withLogin, logout, isLoggedIn }}
+        value={{ login: loginStandalone, useLogin, logout, isLoggedIn }}
       >
         {props.children}
       </AccountContext.Provider>
@@ -229,8 +279,12 @@ export function AccountProvider(props: PropsWithChildren<{}>) {
                 )}
               </DialogContent>
               <DialogActions>
-                <Button onClick={cancelLogin}>Cancel</Button>
-                <Button onClick={login}>Login</Button>
+                <Button onClick={cancelLogin} disabled={isUIDisabled}>
+                  Cancel
+                </Button>
+                <Button onClick={login} disabled={isUIDisabled}>
+                  Login
+                </Button>
               </DialogActions>
             </Dialog>
           ),

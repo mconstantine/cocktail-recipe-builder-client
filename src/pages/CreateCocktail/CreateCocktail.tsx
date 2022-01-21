@@ -9,9 +9,9 @@ import { createCocktail } from './api'
 export function CreateCocktail() {
   const navigate = useNavigate()
   const onCancel = () => navigate('/cocktails')
-  const { withLogin } = useAccount()
+  const { useLogin } = useAccount()
 
-  const command = withLogin(
+  const command = useLogin(
     usePost(createCocktail, ({ id }) => navigate(`/cocktails/${id}`)),
   )
 

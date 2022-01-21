@@ -9,9 +9,9 @@ import { createIngredient } from './api'
 export function CreateIngredient() {
   const navigate = useNavigate()
   const onCancel = () => navigate('/ingredients')
-  const { withLogin } = useAccount()
+  const { useLogin } = useAccount()
 
-  const command = withLogin(
+  const command = useLogin(
     usePost(createIngredient, ({ id }) => navigate(`/ingredients/${id}`)),
   )
 
