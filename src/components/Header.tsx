@@ -1,11 +1,4 @@
-import {
-  AppBar,
-  Button,
-  Container,
-  CssBaseline,
-  Toolbar,
-  Typography,
-} from '@mui/material'
+import { AppBar, Button, Container, CssBaseline, Toolbar } from '@mui/material'
 import { Box } from '@mui/system'
 import { option } from 'fp-ts'
 import { constNull, pipe } from 'fp-ts/function'
@@ -28,10 +21,7 @@ export function Header(props: Props) {
     <Fragment>
       <CssBaseline />
       <AppBar position="sticky">
-        <Toolbar>
-          <Typography variant="h6" sx={{ flexGrow: 1 }}>
-            CRB
-          </Typography>
+        <Toolbar sx={{ justifyContent: 'flex-end' }}>
           <Button color="inherit">
             <Link to="/cocktails">Cocktails</Link>
           </Button>
